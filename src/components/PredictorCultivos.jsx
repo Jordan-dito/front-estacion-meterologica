@@ -163,7 +163,20 @@ const PredictorCultivos = ({
                 </h4>
 
                 <div className="space-y-3">
-                  {resultado.predicciones.map((pred) => (
+                  {resultado.predicciones
+                    .sort((a, b) => {
+                      // Primero ordenar por viabilidad (viable primero)
+                      if (a.viabilidad !== b.viabilidad) {
+                        return b.viabilidad - a.viabilidad;
+                      }
+                      // Luego por si es óptimo (óptimo primero)
+                      if (a.es_optimo_en_cluster !== b.es_optimo_en_cluster) {
+                        return b.es_optimo_en_cluster - a.es_optimo_en_cluster;
+                      }
+                      // Finalmente por confianza (mayor confianza primero)
+                      return b.confianza - a.confianza;
+                    })
+                    .map((pred) => (
                     <div
                       key={pred.cultivo}
                       className={`p-4 rounded-lg border-l-4 ${

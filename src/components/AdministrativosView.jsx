@@ -18,6 +18,175 @@ import AnalisisKMeans from './AnalisisKMeans';
 const FIREBASE_URL = "https://bdclimatico-cdb27-default-rtdb.firebaseio.com/sensores.json";
 
 // ============================================================================
+// MODAL CREAR USUARIO
+// ============================================================================
+const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
+  const [form, setForm] = useState({
+    nombre: '',
+    email: '',
+    cedula: '',
+    password: '',
+    password_confirm: '',
+    rol: 'estudiante',
+  });
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (form.password !== form.password_confirm) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+    
+    if (form.password.length < 8) {
+      alert("La contraseña debe tener mínimo 8 caracteres");
+      return;
+    }
+    
+    onCreate(form);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-xl w-[500px] shadow-lg max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">➕ Crear Nuevo Usuario</h2>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {success}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Nombre */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Nombre Completo
+            </label>
+            <input
+              type="text"
+              name="nombre"
+              value={form.nombre}
+              onChange={handleChange}
+              placeholder="Nombre completo"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Correo Electrónico
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="correo@ejemplo.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Cédula */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Cédula de Identidad (Opcional)
+            </label>
+            <input
+              type="text"
+              name="cedula"
+              value={form.cedula}
+              onChange={handleChange}
+              placeholder="1234567890"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Contraseña */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Mínimo 8 caracteres"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Confirmar Contraseña */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Confirmar Contraseña
+            </label>
+            <input
+              type="password"
+              name="password_confirm"
+              value={form.password_confirm}
+              onChange={handleChange}
+              placeholder="Confirmar contraseña"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {/* Rol */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Rol
+            </label>
+            <select
+              name="rol"
+              value={form.rol}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="estudiante">Estudiante</option>
+              <option value="profesor">Profesor</option>
+              <option value="administrativo">Administrativo</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold px-4 py-2 rounded-lg transition"
+            >
+              {loading ? 'Creando...' : '✅ Crear Usuario'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold rounded-lg transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // MODAL EDITAR USUARIO (CON CÉDULA)
 // ============================================================================
 const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
@@ -282,44 +451,6 @@ const DashboardEstudiante = ({
     onPrediccionesChange={onPredicciones}
   />
 )}
-
-
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">🌾 Recomendaciones de Cultivo</h3>
-      <div className="grid md:grid-cols-2 gap-4">
-        {
-prediccionesML.map((crop, idx) => (
-  <div
-    key={idx}
-    className={`p-4 rounded-lg border-2 ${
-      crop.esViable ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'
-    }`}
-  >
-    <div className="flex justify-between items-center mb-2">
-      <h4 className="font-bold text-gray-800">{crop.nombre}</h4>
-      {crop.esViable && (
-        <span className="text-green-600 text-sm font-semibold">✓ ÓPTIMO</span>
-      )}
-    </div>
-
-    <div className="mb-2">
-      <div className="bg-gray-200 rounded-full h-3">
-        <div
-          className={`h-3 rounded-full ${crop.esViable ? 'bg-green-600' : 'bg-red-500'}`}
-          style={{ width: `${crop.viabilidad}%` }}
-        />
-      </div>
-    </div>
-
-    <p className="text-sm text-gray-600">Confianza: {crop.viabilidad}%</p>
-  </div>
-))
-
-        
-        
-        }
-      </div>
-    </div>
   </div>
 );
 const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, ultimoFirebase, onPredicciones, prediccionesML }) => (
@@ -365,11 +496,19 @@ const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, u
 // ============================================================================
 // TABLA DE USUARIOS CON CÉDULA
 // ============================================================================
-const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh }) => {
+const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, loadingCrear, errorCrear, successCrear }) => {
   const [eliminando, setEliminando] = useState(false);
   const [mensajeEliminar, setMensajeEliminar] = useState(null);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [editando, setEditando] = useState(false);
+  const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
+
+  const handleCrearUsuario = async (formData) => {
+    const resultado = await onCrearUsuario(formData);
+    if (resultado.success) {
+      setMostrarModalCrear(false);
+    }
+  };
 
   const handleGuardarEdicion = async (id, data) => {
     try {
@@ -409,10 +548,19 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        <Users className="text-green-600" size={28} />
-        👥 Usuarios del Sistema
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <Users className="text-green-600" size={28} />
+          👥 Usuarios del Sistema
+        </h2>
+        <button
+          onClick={() => setMostrarModalCrear(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition flex items-center gap-2"
+        >
+          <UserPlus size={18} />
+          ➕ Crear Usuario
+        </button>
+      </div>
 
       {mensajeEliminar && (
         <div className={`mb-4 px-4 py-3 rounded border ${
@@ -497,6 +645,16 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh }) => {
           onSave={handleGuardarEdicion}
         />
       )}
+
+      {mostrarModalCrear && (
+        <ModalCrearUsuario
+          onClose={() => setMostrarModalCrear(false)}
+          onCreate={handleCrearUsuario}
+          loading={loadingCrear}
+          error={errorCrear}
+          success={successCrear}
+        />
+      )}
     </div>
   );
 };
@@ -508,7 +666,7 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh }) => {
 const AdministrativosView = ({ user, apiBaseUrl, onLogout }) => {
   const [prediccionesML, setPrediccionesML] = useState([]);
 
-  const [activeTab, setActiveTab] = useState('crear-usuario');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [usuarios, setUsuarios] = useState([]);
   
   // ⭐ Estados para datos COMBINADOS
@@ -741,33 +899,25 @@ if (keys.length > 0) {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCrearUsuarioSubmit = async (formData) => {
     setError(null);
     setSuccess(null);
 
     if (!formData.nombre || !formData.email || !formData.password) {
       setError('Todos los campos son requeridos');
-      return;
+      return { success: false };
     }
 
     if (formData.password !== formData.password_confirm) {
       setError('Las contraseñas no coinciden');
-      return;
+      return { success: false };
     }
 
     if (formData.password.length < 8) {
       setError('La contraseña debe tener mínimo 8 caracteres');
-      return;
+      return { success: false };
     }
-    // ⭐ AGREGA ESTO:
-    console.log('📤 Datos que se envían:', {
-      nombre: formData.nombre,
-      email: formData.email,
-      cedula: formData.cedula,
-      password: formData.password,
-      rol: formData.rol,
-    });
+
     try {
       setLoading(true);
       const response = await axios.post(`${apiBaseUrl}/crear-usuario/`, {
@@ -780,20 +930,15 @@ if (keys.length > 0) {
       });
 
       setSuccess(`✅ ${response.data.mensaje}`);
-      setFormData({
-        nombre: '',
-        email: '',
-        cedula: '',
-        password: '',
-        password_confirm: '',
-        rol: 'estudiante',
-      });
-
       await fetchUsuarios();
-      setTimeout(() => setActiveTab('usuarios'), 2000);
+      setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
+      return { success: true };
     } catch (err) {
       const errorMsg = err.response?.data?.error || err.message || 'Error al crear usuario';
       setError(`❌ ${errorMsg}`);
+      return { success: false };
     } finally {
       setLoading(false);
     }
@@ -873,7 +1018,7 @@ if (keys.length > 0) {
         </div>
 
         <div className="flex gap-2 border-b overflow-x-auto">
-          {['crear-usuario', 'dashboard', 'analisis', 'analisis-kmeans', 'usuarios'].map((tab) => (
+          {['dashboard', 'analisis', 'usuarios'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -883,27 +1028,14 @@ if (keys.length > 0) {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              {tab === 'crear-usuario' && '➕ Crear Usuario'}
               {tab === 'dashboard' && '📊 Dashboard'}
               {tab === 'analisis' && '📈 Análisis'}
-              {tab === 'analisis-kmeans' && '📚 K-Means'}
               {tab === 'usuarios' && '👥 Usuarios'}
             </button>
           ))}
         </div>
       </div>
 
-      {activeTab === 'crear-usuario' && (
-        <CrearUsuarioTab 
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          loading={loading}
-          error={error}
-          success={success}
-        />
-      )}
-      
 {activeTab === 'dashboard' && (
   <DashboardEstudiante 
     ultimoRegistro={ultimoRegistro}
@@ -931,21 +1063,15 @@ if (keys.length > 0) {
         />
       )}
       
-      {activeTab === 'analisis-kmeans' && (
-        <AnalisisKMeans 
-          variante="profesor"
-          imagenClusters="/centroides.png"
-          imagenCodo="/codo.png"
-            ultimoFirebase={ultimoFirebase}
-  ultimoRegistro={ultimoRegistro}
-        />
-      )}
-      
       {activeTab === 'usuarios' && (
         <GestionUsuarios 
           usuarios={usuarios}
           apiBaseUrl={apiBaseUrl}
           onRefresh={fetchUsuarios}
+          onCrearUsuario={handleCrearUsuarioSubmit}
+          loadingCrear={loading}
+          errorCrear={error}
+          successCrear={success}
         />
       )}
     </div>
