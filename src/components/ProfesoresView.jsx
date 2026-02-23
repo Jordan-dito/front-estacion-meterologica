@@ -3,7 +3,7 @@ import { TrendingUp, Zap, RefreshCw, BarChart3, ChevronLeft, ChevronRight, Datab
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area } from 'recharts';
 import PredictorCultivos from './PredictorCultivos';
 import ModalDescargarPDF from './Modaldescargarpdf';
-import AnalisisKMeans from './AnalisisKMeans';
+// import AnalisisKMeans from './AnalisisKMeans';
 import Papa from 'papaparse';
 
 // ============================================================================
@@ -618,7 +618,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       {/* TABS */}
       <div className="bg-white rounded-xl shadow-lg p-4">
         <div className="flex gap-2 border-b overflow-x-auto">
-          {['resumen', 'datos', 'predictor', 'kmeans'].map((tab) => (
+          {['resumen', 'datos', 'predictor'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -630,7 +630,6 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
             >
               {tab === 'datos' && '📋 Datos'}
               {tab === 'predictor' && '🌾 Predictor'}
-              {tab === 'kmeans' && '📚 K-Means'}
               {tab === 'resumen' && '📈 Dashboard Resumen'}
             </button>
           ))}
@@ -722,10 +721,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
         />
       )}
 
-      {/* TAB: K-MEANS */}
-      {activeTab === 'kmeans' && (
-        <AnalisisKMeans variante="profesor" imagenClusters="/centroides.png" imagenCodo="/codo.png" />
-      )}
+
 
       {/* TAB: DASHBOARD RESUMEN */}
       {activeTab === 'resumen' && datosDashboardResumen && (
