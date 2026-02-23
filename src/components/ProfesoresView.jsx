@@ -28,6 +28,8 @@ const ProfesoresView = ({ user, apiBaseUrl, onLogout }) => {
   const [filtroFecha, setFiltroFecha] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 20;
+  // Orden ascendente/descendente para la tabla de registros
+  const [ordenFechaAsc, setOrdenFechaAsc] = useState(false);
 
   // Estado para el último registro de Firebase (tiempo real)
   const [ultimoFirebase, setUltimoFirebase] = useState(null);
@@ -727,10 +729,29 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 </tr>
               </thead>
               <tbody className="divide-y">
+                {/* Botón de orden asc/desc */}
+                <tr>
+                  <td colSpan="7" className="pb-2">
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => setOrdenFechaAsc(v => !v)}
+                        className="flex items-center gap-1 px-3 py-1 rounded bg-gray-100 hover:bg-blue-100 text-gray-700 text-xs font-semibold border border-gray-200 shadow-sm transition"
+                        title={ordenFechaAsc ? 'Orden descendente' : 'Orden ascendente'}
+                      >
+                        Ordenar por fecha
+                        <span className="ml-1">
+                          {ordenFechaAsc ? '▲' : '▼'}
+                        </span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
                 {(filtroFecha
                   ? datos.filter(d => d.date === filtroFecha)
                   : datos
                 )
+                  .slice()
+                  .sort((a, b) => ordenFechaAsc ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date))
                   .slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina)
                   .map((d, idx) => {
                     const viables = [
