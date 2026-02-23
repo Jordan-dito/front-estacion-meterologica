@@ -323,12 +323,29 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
   const COLORS = ['#ef4444', '#f59e0b', '#8B4513', '#22c55e', '#eab308'];
 
   // ========================================================================
+  // ⭐ FILTRO DE FECHAS PARA DASHBOARD
+  // ========================================================================
+  const [filtroInicio, setFiltroInicio] = useState('');
+  const [filtroFin, setFiltroFin] = useState('');
+
+  // Filtrar datos por rango de fechas
+  const datosFiltrados = useMemo(() => {
+    if (!filtroInicio && !filtroFin) return datos;
+    return datos.filter(d => {
+      if (!d.date) return false;
+      if (filtroInicio && d.date < filtroInicio) return false;
+      if (filtroFin && d.date > filtroFin) return false;
+      return true;
+    });
+  }, [datos, filtroInicio, filtroFin]);
+
+  // ========================================================================
   // ⭐ DATOS PARA DASHBOARD RESUMEN
   // ========================================================================
   const datosDashboardResumen = useMemo(() => {
-    if (datos.length === 0) return null;
+    if (datosFiltrados.length === 0) return null;
 
-    const totalDias = datos.length;
+    const totalDias = datosFiltrados.length;
     
     const viabilidadCultivos = {
       tomate: { dias: cultivosViables.tomate, porcentaje: ((cultivosViables.tomate / totalDias) * 100).toFixed(1) },
@@ -358,7 +375,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
     let condicionesModeradas = 0;
     let excesoLluvias = 0;
 
-    datos.forEach(d => {
+    datosFiltrados.forEach(d => {
       if (d.precipitacion < 5) condicionesSecas++;
       else if (d.precipitacion >= 5 && d.precipitacion <= 20) condicionesModeradas++;
       else excesoLluvias++;
@@ -371,7 +388,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
     ];
 
     const datosPorMes = {};
-    datos.forEach(d => {
+    datosFiltrados.forEach(d => {
       const fecha = new Date(d.date);
       const mes = fecha.getMonth();
       if (!datosPorMes[mes]) {
@@ -472,13 +489,39 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
     );
   }
 
+
   return (
     <div className="space-y-6">
       {/* HEADER */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
           <h2 className="text-2xl font-bold text-gray-800">👨‍🏫 Panel Avanzado de Profesor</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap items-center">
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 shadow-sm">
+              <label className="text-gray-700 font-medium text-sm">Filtrar por fecha:</label>
+              <input
+                type="date"
+                className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+                value={filtroInicio}
+                min={datos.length > 0 ? datos[0].date : ''}
+                max={filtroFin || (datos.length > 0 ? datos[datos.length-1].date : '')}
+                onChange={e => setFiltroInicio(e.target.value)}
+              />
+              <span className="text-gray-500">a</span>
+              <input
+                type="date"
+                className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+                value={filtroFin}
+                min={filtroInicio || (datos.length > 0 ? datos[0].date : '')}
+                max={datos.length > 0 ? datos[datos.length-1].date : ''}
+                onChange={e => setFiltroFin(e.target.value)}
+              />
+              <button
+                onClick={() => { setFiltroInicio(''); setFiltroFin(''); }}
+                className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs transition"
+                disabled={!filtroInicio && !filtroFin}
+              >Limpiar</button>
+            </div>
             <button
               onClick={fetchFirebase}
               disabled={loadingFirebase}
