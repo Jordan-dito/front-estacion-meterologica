@@ -23,6 +23,9 @@ const ProfesoresView = ({ user, apiBaseUrl, onLogout }) => {
   const [error, setError] = useState(null);
   const [modalDescargaOpen, setModalDescargaOpen] = useState(false);
   
+
+  // Filtro de fecha
+  const [filtroFecha, setFiltroFecha] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 20;
 
@@ -636,17 +639,35 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
         </div>
       </div>
 
+
       {/* TAB: DATOS */}
       {activeTab === 'datos' && (
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
             <h3 className="text-lg font-semibold text-gray-800">📋 Registros ({datos.length} total)</h3>
-            <button
-              onClick={() => setModalDescargaOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg"
-            >
-              📥 Descargar PDF
-            </button>
+            <div className="flex gap-2 items-center">
+              <input
+                type="date"
+                className="border rounded px-2 py-1 text-sm"
+                value={filtroFecha}
+                onChange={e => {
+                  setFiltroFecha(e.target.value);
+                  setPaginaActual(1);
+                }}
+                max={datos.length > 0 ? datos[datos.length-1].date : ''}
+              />
+              <button
+                onClick={() => setFiltroFecha('')}
+                className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs"
+                disabled={!filtroFecha}
+              >Limpiar</button>
+              <button
+                onClick={() => setModalDescargaOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg"
+              >
+                📥 Descargar PDF
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto mb-4">
@@ -662,37 +683,37 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   <th className="px-4 py-3 text-left">Fuente</th>
                 </tr>
               </thead>
-<tbody className="divide-y">
-  {datosPaginados.map((d, idx) => {
-    const viables = [
-      d.tomate === 'Sí' && '🍅',
-      d.banana === 'Sí' && '🍌',
-      d.cacao === 'Sí' && '🌰',
-      d.arroz === 'Sí' && '🌾',
-      d.maiz === 'Sí' && '🌽',
-    ].filter(Boolean).join(' ');
-
-    return (
-      <tr key={idx} className="hover:bg-gray-50">
-        {/* ⭐ MOSTRAR dateDisplay (con hora) */}
-        <td className="px-4 py-3 font-mono text-sm">
-          {console.log('REGISTRO:', d.date, d.dateDisplay, d.fuente)}
-          {d.dateDisplay}
-        </td>
-        <td className="px-4 py-3 text-red-600 font-semibold">{d.temperatura}°C</td>
-        <td className="px-4 py-3 text-blue-600">{d.humedad}%</td>
-        <td className="px-4 py-3 text-yellow-600">{typeof d.radiacion_solar === 'number' ? d.radiacion_solar.toFixed(1) : d.radiacion_solar} kW/m²</td>
-        <td className="px-4 py-3 text-cyan-600">{d.precipitacion} mm</td>
-        <td className="px-4 py-3 text-lg">{viables || '❌'}</td>
-        <td className="px-4 py-3">
-          <span className={`px-2 py-1 rounded text-xs ${d.fuente === 'firebase' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}`}>
-            {d.fuente === 'firebase' ? '🔥' : '📁'}
-          </span>
-        </td>
-      </tr>
-    );
-  })}
-</tbody>
+              <tbody className="divide-y">
+                {(filtroFecha
+                  ? datos.filter(d => d.date === filtroFecha)
+                  : datos
+                )
+                  .slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina)
+                  .map((d, idx) => {
+                    const viables = [
+                      d.tomate === 'Sí' && '🍅',
+                      d.banana === 'Sí' && '🍌',
+                      d.cacao === 'Sí' && '🌰',
+                      d.arroz === 'Sí' && '🌾',
+                      d.maiz === 'Sí' && '🌽',
+                    ].filter(Boolean).join(' ');
+                    return (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-mono text-sm">{d.dateDisplay}</td>
+                        <td className="px-4 py-3 text-red-600 font-semibold">{d.temperatura}°C</td>
+                        <td className="px-4 py-3 text-blue-600">{d.humedad}%</td>
+                        <td className="px-4 py-3 text-yellow-600">{typeof d.radiacion_solar === 'number' ? d.radiacion_solar.toFixed(1) : d.radiacion_solar} kW/m²</td>
+                        <td className="px-4 py-3 text-cyan-600">{d.precipitacion} mm</td>
+                        <td className="px-4 py-3 text-lg">{viables || '❌'}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded text-xs ${d.fuente === 'firebase' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {d.fuente === 'firebase' ? '🔥' : '📁'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
             </table>
           </div>
 
