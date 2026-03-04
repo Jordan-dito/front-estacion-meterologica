@@ -24,8 +24,6 @@ const ProfesoresView = ({ user, apiBaseUrl, onLogout }) => {
   const [modalDescargaOpen, setModalDescargaOpen] = useState(false);
   
 
-  // Filtro de fecha
-  const [filtroFecha, setFiltroFecha] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 20;
   // Orden ascendente/descendente para la tabla de registros
@@ -440,12 +438,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
   // ========================================================================
   // PAGINACIÓN
   // ========================================================================
-  const datosInvertidos = [...datos].reverse();
-  const totalPaginas = Math.ceil(datosInvertidos.length / registrosPorPagina);
-  
-  const indiceInicio = (paginaActual - 1) * registrosPorPagina;
-  const indiceFin = indiceInicio + registrosPorPagina;
-  const datosPaginados = datosInvertidos.slice(indiceInicio, indiceFin);
+  const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
 
   const irPaginaAnterior = () => {
     if (paginaActual > 1) setPaginaActual(paginaActual - 1);
@@ -689,23 +682,33 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       {activeTab === 'datos' && (
         <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-            <h3 className="text-lg font-semibold text-gray-800">📋 Registros ({datos.length} total)</h3>
-            <div className="flex gap-2 items-center">
-              <input
-                type="date"
-                className="border rounded px-2 py-1 text-sm"
-                value={filtroFecha}
-                onChange={e => {
-                  setFiltroFecha(e.target.value);
-                  setPaginaActual(1);
-                }}
-                max={datos.length > 0 ? datos[datos.length-1].date : ''}
-              />
-              <button
-                onClick={() => setFiltroFecha('')}
-                className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs"
-                disabled={!filtroFecha}
-              >Limpiar</button>
+            <h3 className="text-lg font-semibold text-gray-800">📋 Registros ({datosFiltrados.length} de {datos.length})</h3>
+            <div className="flex gap-2 items-center flex-wrap">
+              <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 shadow-sm">
+                <label className="text-gray-700 font-medium text-sm">Inicio:</label>
+                <input
+                  type="date"
+                  className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+                  value={filtroInicio}
+                  min={datos.length > 0 ? datos[0].date : ''}
+                  max={filtroFin || (datos.length > 0 ? datos[datos.length-1].date : '')}
+                  onChange={e => { setFiltroInicio(e.target.value); setPaginaActual(1); }}
+                />
+                <label className="text-gray-700 font-medium text-sm">Fin:</label>
+                <input
+                  type="date"
+                  className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+                  value={filtroFin}
+                  min={filtroInicio || (datos.length > 0 ? datos[0].date : '')}
+                  max={datos.length > 0 ? datos[datos.length-1].date : ''}
+                  onChange={e => { setFiltroFin(e.target.value); setPaginaActual(1); }}
+                />
+                <button
+                  onClick={() => { setFiltroInicio(''); setFiltroFin(''); setPaginaActual(1); }}
+                  className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs transition"
+                  disabled={!filtroInicio && !filtroFin}
+                >Limpiar</button>
+              </div>
               <button
                 onClick={() => setModalDescargaOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg"
@@ -746,10 +749,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                     </div>
                   </td>
                 </tr>
-                {(filtroFecha
-                  ? datos.filter(d => d.date === filtroFecha)
-                  : datos
-                )
+                {datosFiltrados
                   .slice()
                   .sort((a, b) => ordenFechaAsc ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date))
                   .slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina)
@@ -996,7 +996,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       <ModalDescargarPDF
         isOpen={modalDescargaOpen}
         onClose={() => setModalDescargaOpen(false)}
-        datos={datos}
+        datos={datosFiltrados}
       />
     </div>
   );
