@@ -256,11 +256,11 @@ const normalizarDatosFirebase = (firebaseData) => {
     date: d.timestamp ? d.timestamp.split(" ")[0] : null
   }));
 };
-const calcularEstadisticas = () => {
-  if (!Array.isArray(datos) || datos.length === 0) return null;
+const calcularEstadisticas = (datosInput) => {
+  if (!Array.isArray(datosInput) || datosInput.length === 0) return null;
 
   // 🔥 FECHA YYYY-MM-DD
-  const fechas = datos
+  const fechas = datosInput
     .map(d => d.date?.split(" ")[0])
     .filter(Boolean)
     .sort();
@@ -268,7 +268,7 @@ const calcularEstadisticas = () => {
   const ultimaFecha = fechas.at(-1);
   if (!ultimaFecha) return null;
 
-  const datosUltimoDia = datos.filter(d =>
+  const datosUltimoDia = datosInput.filter(d =>
     d.date?.startsWith(ultimaFecha)
   );
 
@@ -444,7 +444,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       tendenciaMensual,
       mejorMesPorCultivo
     };
-  }, [datos, cultivosViables]);
+  }, [datosFiltrados, cultivosViables]);
 
   // ========================================================================
   // PAGINACIÓN
