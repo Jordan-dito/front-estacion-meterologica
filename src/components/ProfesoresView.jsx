@@ -91,6 +91,15 @@ const firebaseComoCSV = registros.map((r) => {
   // ⭐ VALORES POR DEFECTO
   let fechaParaFiltro = new Date().toISOString().slice(0, 10);
   let fechaParaMostrar = fechaParaFiltro; // Default
+
+  const dateFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  };
   
   // ⭐ REVISAR SI EXISTE TIMESTAMP
   console.log('RAW TIMESTAMP:', r.timestamp, typeof r.timestamp);
@@ -115,13 +124,13 @@ const firebaseComoCSV = registros.map((r) => {
       const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
       const dateObj = new Date(ts * 1000);
       fechaParaFiltro = dateObj.toISOString().slice(0, 10);
-      fechaParaMostrar = dateObj.toLocaleString('es-ES');
+      fechaParaMostrar = dateObj.toLocaleString('es-ES', dateFormatOptions);
     } else {
       // Si es string pero no tiene "/" — intentar parsear como fecha ISO
       const parsedDate = new Date(r.timestamp);
       if (!isNaN(parsedDate.getTime())) {
         fechaParaFiltro = parsedDate.toISOString().slice(0, 10);
-        fechaParaMostrar = parsedDate.toLocaleString('es-ES');
+        fechaParaMostrar = parsedDate.toLocaleString('es-ES', dateFormatOptions);
       } else {
         fechaParaMostrar = String(r.timestamp);
       }
