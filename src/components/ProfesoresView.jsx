@@ -230,7 +230,7 @@ useEffect(() => {
   const combinados = [...csvConDisplay, ...datosFirebaseArray];
   
   // Ordenar por fecha
-  combinados.sort((a, b) => new Date(a.date) * new Date(b.date));
+  combinados.sort((a, b) => new Date(a.date) - new Date(b.date));
   
   setDatos(combinados);
 }, [datosCSV, datosFirebaseArray]);
@@ -259,15 +259,11 @@ const normalizarDatosFirebase = (firebaseData) => {
 const calcularEstadisticas = () => {
   if (!Array.isArray(datos) || datos.length === 0) return null;
 
-  // 🔥 FECHA DD/MM/YY
+  // 🔥 FECHA YYYY-MM-DD
   const fechas = datos
     .map(d => d.date?.split(" ")[0])
     .filter(Boolean)
-    .sort((a, b) => {
-      const [da, ma, ya] = a.split("/").map(Number);
-      const [db, mb, yb] = b.split("/").map(Number);
-      return new Date(2000 + ya, ma - 1, da) - new Date(2000 + yb, mb - 1, db);
-    });
+    .sort();
 
   const ultimaFecha = fechas.at(-1);
   if (!ultimaFecha) return null;
