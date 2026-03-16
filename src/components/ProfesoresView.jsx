@@ -117,8 +117,14 @@ const firebaseComoCSV = registros.map((r) => {
       fechaParaFiltro = dateObj.toISOString().slice(0, 10);
       fechaParaMostrar = dateObj.toLocaleString('es-ES');
     } else {
-      // Si es string pero no tiene "/"
-      fechaParaMostrar = String(r.timestamp);
+      // Si es string pero no tiene "/" — intentar parsear como fecha ISO
+      const parsedDate = new Date(r.timestamp);
+      if (!isNaN(parsedDate.getTime())) {
+        fechaParaFiltro = parsedDate.toISOString().slice(0, 10);
+        fechaParaMostrar = parsedDate.toLocaleString('es-ES');
+      } else {
+        fechaParaMostrar = String(r.timestamp);
+      }
     }
   }
   
