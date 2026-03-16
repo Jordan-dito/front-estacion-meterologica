@@ -557,10 +557,13 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       {/* FIREBASE TIEMPO REAL */}
       {ultimoFirebase && (
         <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-lg p-6 text-white">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
             <Database size={24} />
             🔥 Sensores en Tiempo Real
           </h3>
+          {ultimoFirebase.timestamp && (
+            <p className="text-sm text-white/80 mb-4">🕐 Última lectura: {ultimoFirebase.timestamp}</p>
+          )}
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
