@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   UserPlus, Users, BarChart3, TrendingUp, Thermometer, Droplets,
-  Sun, CloudRain, Wind, Activity, RefreshCw, Database
+  Sun, CloudRain, Wind, Activity, RefreshCw, Database, AlertTriangle, X
 } from 'lucide-react';
 import axios from 'axios';
 import Papa from 'papaparse';
@@ -53,6 +53,34 @@ const validarCedulaEcuatoriana = (cedula) => {
 };
 
 // ============================================================================
+// ALERT PERSONALIZADO
+// ============================================================================
+const CustomAlert = ({ mensaje, onClose }) => (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    <div className="absolute inset-0 bg-black bg-opacity-40" onClick={onClose} />
+    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 flex flex-col items-center gap-4 animate-fade-in">
+      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100">
+        <AlertTriangle className="text-red-500" size={36} />
+      </div>
+      <h3 className="text-lg font-bold text-gray-800">Cédula inválida</h3>
+      <p className="text-sm text-gray-600 text-center leading-relaxed">{mensaje}</p>
+      <button
+        onClick={onClose}
+        className="mt-1 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-xl transition"
+      >
+        Entendido
+      </button>
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
+      >
+        <X size={18} />
+      </button>
+    </div>
+  </div>
+);
+
+// ============================================================================
 // MODAL CREAR USUARIO
 // ============================================================================
 const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
@@ -64,6 +92,7 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
     password_confirm: '',
     rol: 'estudiante',
   });
+  const [cedulaAlerta, setCedulaAlerta] = useState('');
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -71,7 +100,7 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
   const handleCedulaBlur = () => {
     if (!form.cedula) return;
     const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
-    if (!valida) alert(mensaje);
+    if (!valida) setCedulaAlerta(mensaje);
   };
 
   const handleSubmit = (e) => {
@@ -79,7 +108,7 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
 
     if (form.cedula) {
       const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
-      if (!valida) { alert(mensaje); return; }
+      if (!valida) { setCedulaAlerta(mensaje); return; }
     }
 
     if (form.password !== form.password_confirm) {
@@ -96,6 +125,8 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
   };
 
   return (
+    <>
+      {cedulaAlerta && <CustomAlert mensaje={cedulaAlerta} onClose={() => setCedulaAlerta('')} />}
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-xl w-[500px] shadow-lg max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">➕ Crear Nuevo Usuario</h2>
@@ -231,6 +262,7 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 
@@ -244,6 +276,7 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
     rol: usuario.rol || "estudiante",
     cedula: usuario.cedula || "",
   });
+  const [cedulaAlerta, setCedulaAlerta] = useState('');
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -251,19 +284,21 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
   const handleCedulaBlur = () => {
     if (!form.cedula) return;
     const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
-    if (!valida) alert(mensaje);
+    if (!valida) setCedulaAlerta(mensaje);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
-    if (!valida) { alert(mensaje); return; }
+    if (!valida) { setCedulaAlerta(mensaje); return; }
 
     onSave(usuario.id, form);
   };
 
   return (
+    <>
+      {cedulaAlerta && <CustomAlert mensaje={cedulaAlerta} onClose={() => setCedulaAlerta('')} />}
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-xl w-96 shadow-lg">
         <h2 className="text-xl font-bold mb-4">✏️ Editar Usuario</h2>
@@ -354,6 +389,7 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 
