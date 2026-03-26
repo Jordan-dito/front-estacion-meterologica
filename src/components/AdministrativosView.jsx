@@ -18,6 +18,41 @@ import AnalisisKMeans from './AnalisisKMeans';
 const FIREBASE_URL = "https://bdclimatico-cdb27-default-rtdb.firebaseio.com/sensores.json";
 
 // ============================================================================
+// VALIDACIÓN DE CÉDULA ECUATORIANA
+// ============================================================================
+const validarCedulaEcuatoriana = (cedula) => {
+  if (!cedula || cedula.trim() === '')
+    return { valida: false, mensaje: 'La cédula es requerida.' };
+
+  if (!/^\d+$/.test(cedula))
+    return { valida: false, mensaje: 'La cédula debe contener solo números, sin espacios ni letras.' };
+
+  if (cedula.length !== 10)
+    return { valida: false, mensaje: `Formato incorrecto: la cédula ecuatoriana debe tener exactamente 10 dígitos (ingresaste ${cedula.length}).` };
+
+  const provincia = parseInt(cedula.substring(0, 2), 10);
+  if (provincia < 1 || (provincia > 24 && provincia !== 30))
+    return { valida: false, mensaje: 'Esta cédula no es ecuatoriana (código de provincia inválido).' };
+
+  const tercerDigito = parseInt(cedula[2], 10);
+  if (tercerDigito > 7)
+    return { valida: false, mensaje: 'Esta cédula no es ecuatoriana (tercer dígito fuera de rango).' };
+
+  const coeficientes = [2, 1, 2, 1, 2, 1, 2, 1, 2];
+  let suma = 0;
+  for (let i = 0; i < 9; i++) {
+    let val = parseInt(cedula[i], 10) * coeficientes[i];
+    if (val >= 10) val -= 9;
+    suma += val;
+  }
+  const digitoEsperado = (10 - (suma % 10)) % 10;
+  if (digitoEsperado !== parseInt(cedula[9], 10))
+    return { valida: false, mensaje: 'Esta cédula no es válida (dígito verificador incorrecto). Verifica que la hayas ingresado correctamente.' };
+
+  return { valida: true, mensaje: '' };
+};
+
+// ============================================================================
 // MODAL CREAR USUARIO
 // ============================================================================
 const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
@@ -33,19 +68,30 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  const handleCedulaBlur = () => {
+    if (!form.cedula) return;
+    const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
+    if (!valida) alert(mensaje);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
+    if (form.cedula) {
+      const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
+      if (!valida) { alert(mensaje); return; }
+    }
+
     if (form.password !== form.password_confirm) {
       alert("Las contraseñas no coinciden");
       return;
     }
-    
+
     if (form.password.length < 8) {
       alert("La contraseña debe tener mínimo 8 caracteres");
       return;
     }
-    
+
     onCreate(form);
   };
 
@@ -109,7 +155,9 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
               name="cedula"
               value={form.cedula}
               onChange={handleChange}
+              onBlur={handleCedulaBlur}
               placeholder="1234567890"
+              maxLength={10}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -200,15 +248,18 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  const handleCedulaBlur = () => {
+    if (!form.cedula) return;
+    const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
+    if (!valida) alert(mensaje);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validar que la cédula no esté vacía si es requerida
-    if (!form.cedula.trim()) {
-      alert("La cédula es requerida");
-      return;
-    }
-    
+
+    const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
+    if (!valida) { alert(mensaje); return; }
+
     onSave(usuario.id, form);
   };
 
@@ -260,7 +311,9 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
               name="cedula"
               value={form.cedula}
               onChange={handleChange}
+              onBlur={handleCedulaBlur}
               placeholder="1234567890"
+              maxLength={10}
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -354,6 +407,12 @@ const CrearUsuarioTab = ({ formData, handleInputChange, handleSubmit, loading, e
   placeholder="Cédula de Identidad (Opcional)"
   value={formData.cedula}
   onChange={handleInputChange}
+  onBlur={() => {
+    if (!formData.cedula) return;
+    const { valida, mensaje } = validarCedulaEcuatoriana(formData.cedula);
+    if (!valida) alert(mensaje);
+  }}
+  maxLength={10}
   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 />
         <input
@@ -906,6 +965,14 @@ if (keys.length > 0) {
     if (!formData.nombre || !formData.email || !formData.password) {
       setError('Todos los campos son requeridos');
       return { success: false };
+    }
+
+    if (formData.cedula) {
+      const { valida, mensaje } = validarCedulaEcuatoriana(formData.cedula);
+      if (!valida) {
+        setError(mensaje);
+        return { success: false };
+      }
     }
 
     if (formData.password !== formData.password_confirm) {
