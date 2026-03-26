@@ -67,6 +67,24 @@ const normalizarFecha = (fechaStr) => {
   };
 
   // ========================================================================
+  // FUNCIÓN PARA CARGAR EL LOGO COMO BASE64
+  // ========================================================================
+  const cargarLogo = async () => {
+    try {
+      const response = await fetch(`${process.env.PUBLIC_URL}/logo.jpg`);
+      const blob = await response.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  // ========================================================================
   // FUNCIÓN PARA DESCARGAR PDF
   // ========================================================================
   const descargarPDF = async (tipoDescarga) => {
@@ -105,20 +123,32 @@ const normalizarFecha = (fechaStr) => {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
 
-      // ENCABEZADO
+      // LOGO DE LA UNIVERSIDAD
+      const logoData = await cargarLogo();
+      if (logoData) {
+        // Logo en la esquina superior izquierda: x=10, y=5, ancho=35, alto=22
+        doc.addImage(logoData, 'JPEG', 10, 5, 35, 22);
+      }
+
+      // ENCABEZADO (ajustado para convivir con el logo)
       doc.setFontSize(16);
-      doc.text('Reporte de Viabilidad de Cultivos', pageWidth / 2, 15, { align: 'center' });
+      doc.text('Reporte de Viabilidad de Cultivos', pageWidth / 2, 14, { align: 'center' });
 
       doc.setFontSize(10);
-      doc.text(`Generado: ${new Date().toLocaleString('es-ES')}`, pageWidth / 2, 22, { align: 'center' });
+      doc.text(`Generado: ${new Date().toLocaleString('es-ES')}`, pageWidth / 2, 21, { align: 'center' });
+
+      // Línea separadora debajo del encabezado
+      doc.setDrawColor(200, 200, 200);
+      doc.line(10, 30, pageWidth - 10, 30);
 
       // RESUMEN
+      doc.setFontSize(10);
       if (tipoDescarga === 'rango') {
-        doc.text(`Período: ${fechaInicio} a ${fechaFin}`, 15, 30);
+        doc.text(`Período: ${fechaInicio} a ${fechaFin}`, 15, 38);
       } else {
-        doc.text(`Período: Todos los registros (${datos.length} total)`, 15, 30);
+        doc.text(`Período: Todos los registros (${datos.length} total)`, 15, 38);
       }
-      doc.text(`Registros a mostrar: ${datosADescargar.length}`, 15, 37);
+      doc.text(`Registros a mostrar: ${datosADescargar.length}`, 15, 45);
 
       // TABLA
       const columnasTabla = ['Fecha', 'Temp (°C)', 'Humedad (%)', 'Radiación', 'Precip. (mm)', 'Cultivos Viables'];
@@ -145,7 +175,7 @@ const normalizarFecha = (fechaStr) => {
       autoTable(doc, {
         head: [columnasTabla],
         body: filasTabla,
-        startY: 45,
+        startY: 52,
         margin: 10,
         theme: 'grid',
         headStyles: {
