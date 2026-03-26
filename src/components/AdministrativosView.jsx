@@ -452,7 +452,7 @@ const CrearUsuarioTab = ({ formData, handleInputChange, handleSubmit, loading, e
   onBlur={() => {
     if (!formData.cedula) return;
     const { valida, mensaje } = validarCedulaEcuatoriana(formData.cedula);
-    if (!valida) setCedulaAlerta(mensaje);
+    if (!valida) alert(mensaje);
   }}
   maxLength={10}
   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
