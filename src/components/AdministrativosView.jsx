@@ -94,8 +94,11 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
   });
   const [cedulaAlerta, setCedulaAlerta] = useState('');
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const newValue = name === 'cedula' ? value.replace(/\D/g, '') : value;
+    setForm({ ...form, [name]: newValue });
+  };
 
   const handleCedulaBlur = () => {
     if (!form.cedula) return;
@@ -278,8 +281,11 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
   });
   const [cedulaAlerta, setCedulaAlerta] = useState('');
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const newValue = name === 'cedula' ? value.replace(/\D/g, '') : value;
+    setForm({ ...form, [name]: newValue });
+  };
 
   const handleCedulaBlur = () => {
     if (!form.cedula) return;
@@ -446,7 +452,7 @@ const CrearUsuarioTab = ({ formData, handleInputChange, handleSubmit, loading, e
   onBlur={() => {
     if (!formData.cedula) return;
     const { valida, mensaje } = validarCedulaEcuatoriana(formData.cedula);
-    if (!valida) alert(mensaje);
+    if (!valida) setCedulaAlerta(mensaje);
   }}
   maxLength={10}
   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -991,7 +997,8 @@ if (keys.length > 0) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const newValue = name === 'cedula' ? value.replace(/\D/g, '') : value;
+    setFormData({ ...formData, [name]: newValue });
   };
 
   const handleCrearUsuarioSubmit = async (formData) => {
