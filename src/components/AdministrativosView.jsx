@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   UserPlus, Users, BarChart3, TrendingUp, Thermometer, Droplets,
   Sun, CloudRain, Wind, Activity, RefreshCw, Database, AlertTriangle, X
@@ -190,8 +190,14 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
               value={form.cedula}
               onChange={handleChange}
               onBlur={handleCedulaBlur}
+              onKeyDown={e => {
+                if (!/\d/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                  e.preventDefault();
+                }
+              }}
               placeholder="1234567890"
               maxLength={10}
+              inputMode="numeric"
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -353,8 +359,14 @@ const ModalEditarUsuario = ({ usuario, onClose, onSave, loading }) => {
               value={form.cedula}
               onChange={handleChange}
               onBlur={handleCedulaBlur}
+              onKeyDown={e => {
+                if (!/\d/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                  e.preventDefault();
+                }
+              }}
               placeholder="1234567890"
               maxLength={10}
+              inputMode="numeric"
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -454,7 +466,13 @@ const CrearUsuarioTab = ({ formData, handleInputChange, handleSubmit, loading, e
     const { valida, mensaje } = validarCedulaEcuatoriana(formData.cedula);
     if (!valida) alert(mensaje);
   }}
+  onKeyDown={e => {
+    if (!/\d/.test(e.key) && !['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+    }
+  }}
   maxLength={10}
+  inputMode="numeric"
   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 />
         <input
@@ -574,6 +592,14 @@ const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, u
               <div className="flex justify-between bg-white p-3 rounded">
                 <span className="text-gray-700">Humedad Promedio:</span>
                 <span className="font-bold text-gray-900">{stats.humedadPromedio}%</span>
+              </div>
+              <div className="flex justify-between bg-white p-3 rounded">
+                <span className="text-gray-700">Radiación Solar Promedio:</span>
+                <span className="font-bold text-gray-900">{stats.radiacionPromedio} kW/m²</span>
+              </div>
+              <div className="flex justify-between bg-white p-3 rounded">
+                <span className="text-gray-700">Precipitación Promedio:</span>
+                <span className="font-bold text-gray-900">{stats.precipitacionPromedio} mm</span>
               </div>
               <div className="flex justify-between bg-white p-3 rounded">
                 <span className="text-gray-700">Total Registros:</span>
@@ -791,6 +817,9 @@ const AdministrativosView = ({ user, apiBaseUrl, onLogout }) => {
     password_confirm: '',
     rol: 'estudiante',
   });
+
+  const [filtroInicioAdmin, setFiltroInicioAdmin] = useState('');
+  const [filtroFinAdmin, setFiltroFinAdmin] = useState('');
 
 const handlePrediccionesActualizadas = useCallback((predicciones) => {
   if (predicciones && predicciones.length > 0) {
@@ -1056,11 +1085,13 @@ if (keys.length > 0) {
 
   const ultimoRegistro = datos.length > 0 ? datos[datos.length - 1] : null;
 
-  const calcularStats = () => {
-    if (datos.length === 0) return null;
-    const temps = datos.map((d) => d.temperatura);
-    const humeds = datos.map((d) => d.humedad);
-    const radiaciones = datos.map((d) => d.radiacion_solar);
+  const calcularStats = (datosParam) => {
+    const d = datosParam || datos;
+    if (d.length === 0) return null;
+    const temps = d.map((r) => r.temperatura);
+    const humeds = d.map((r) => r.humedad);
+    const radiaciones = d.map((r) => r.radiacion_solar);
+    const precipitaciones = d.map((r) => r.precipitacion);
     const average = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
 
     return {
@@ -1072,10 +1103,29 @@ if (keys.length > 0) {
       tempPromedio: average(temps).toFixed(2),
       humedadPromedio: average(humeds).toFixed(2),
       radiacionPromedio: average(radiaciones).toFixed(0),
+      precipitacionPromedio: average(precipitaciones).toFixed(1),
     };
   };
 
   const stats = calcularStats();
+
+  const datosFiltradosAdmin = useMemo(() => {
+    return datos.filter(d => {
+      if (filtroInicioAdmin && d.date < filtroInicioAdmin) return false;
+      if (filtroFinAdmin && d.date > filtroFinAdmin) return false;
+      return true;
+    });
+  }, [datos, filtroInicioAdmin, filtroFinAdmin]);
+
+  const statsAdmin = calcularStats(datosFiltradosAdmin);
+
+  const mockHistoricalDataAdmin = datosFiltradosAdmin.slice(-30).map((d) => ({
+    fecha: d.date,
+    temp: d.temperatura,
+    hum: d.humedad,
+    rad: Math.round(d.radiacion_solar / 100),
+    precip: d.precipitacion,
+  }));
 
   const mockHistoricalData = datos.slice(-30).map((d) => ({
     fecha: d.date,
@@ -1161,16 +1211,44 @@ if (keys.length > 0) {
 )}
 
       {activeTab === 'analisis' && (
-        <DashboardProfesor 
-          mockHistoricalData={mockHistoricalData}
-          stats={stats}
-          mockCropRecommendations={mockCropRecommendations}
-          ultimoRegistro={ultimoRegistro}
-          datos={datos}
-          ultimoFirebase={ultimoFirebase}
-          onPredicciones={handlePrediccionesActualizadas}
-          prediccionesML={prediccionesML}
-        />
+        <>
+          <div className="bg-white rounded-xl shadow-lg p-4 flex flex-wrap items-end gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Desde</label>
+              <input
+                type="date"
+                value={filtroInicioAdmin}
+                onChange={e => setFiltroInicioAdmin(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Hasta</label>
+              <input
+                type="date"
+                value={filtroFinAdmin}
+                onChange={e => setFiltroFinAdmin(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              onClick={() => { setFiltroInicioAdmin(''); setFiltroFinAdmin(''); }}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition"
+            >
+              Limpiar
+            </button>
+          </div>
+          <DashboardProfesor
+            mockHistoricalData={mockHistoricalDataAdmin}
+            stats={statsAdmin}
+            mockCropRecommendations={mockCropRecommendations}
+            ultimoRegistro={ultimoRegistro}
+            datos={datosFiltradosAdmin}
+            ultimoFirebase={ultimoFirebase}
+            onPredicciones={handlePrediccionesActualizadas}
+            prediccionesML={prediccionesML}
+          />
+        </>
       )}
       
       {activeTab === 'usuarios' && (
