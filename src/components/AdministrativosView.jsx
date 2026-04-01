@@ -7,7 +7,8 @@ import axios from 'axios';
 import Papa from 'papaparse';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 import PredictorCultivos from './PredictorCultivos';
 import AnalisisKMeans from './AnalisisKMeans';
@@ -1135,6 +1136,83 @@ if (keys.length > 0) {
     precip: d.precipitacion,
   }));
 
+  const COLORES_CLIMA_ADMIN = ['#f59e0b', '#22c55e', '#3b82f6'];
+  const COLORES_CULTIVOS_ADMIN = {
+    tomate: '#ef4444', banana: '#f59e0b', cacao: '#8B4513', arroz: '#22c55e', maiz: '#eab308'
+  };
+
+  const datosDashboardAdmin = useMemo(() => {
+    if (datosFiltradosAdmin.length === 0) return null;
+    const totalDias = datosFiltradosAdmin.length;
+    const cultivosViables = {
+      tomate: datosFiltradosAdmin.filter(d => d.tomate === 'Sí').length,
+      banana: datosFiltradosAdmin.filter(d => d.banana === 'Sí').length,
+      cacao: datosFiltradosAdmin.filter(d => d.cacao === 'Sí').length,
+      arroz: datosFiltradosAdmin.filter(d => d.arroz === 'Sí').length,
+      maiz: datosFiltradosAdmin.filter(d => d.maiz === 'Sí').length,
+    };
+    const viabilidadCultivos = {
+      tomate: { porcentaje: ((cultivosViables.tomate / totalDias) * 100).toFixed(1) },
+      banana: { porcentaje: ((cultivosViables.banana / totalDias) * 100).toFixed(1) },
+      cacao:  { porcentaje: ((cultivosViables.cacao  / totalDias) * 100).toFixed(1) },
+      arroz:  { porcentaje: ((cultivosViables.arroz  / totalDias) * 100).toFixed(1) },
+      maiz:   { porcentaje: ((cultivosViables.maiz   / totalDias) * 100).toFixed(1) },
+    };
+    const datosViabilidadPie = [
+      { name: 'Tomate', value: parseFloat(viabilidadCultivos.tomate.porcentaje), color: '#ef4444' },
+      { name: 'Banana', value: parseFloat(viabilidadCultivos.banana.porcentaje), color: '#f59e0b' },
+      { name: 'Cacao',  value: parseFloat(viabilidadCultivos.cacao.porcentaje),  color: '#8B4513' },
+      { name: 'Arroz',  value: parseFloat(viabilidadCultivos.arroz.porcentaje),  color: '#22c55e' },
+      { name: 'Maíz',   value: parseFloat(viabilidadCultivos.maiz.porcentaje),   color: '#eab308' },
+    ];
+    const datosBarra = [
+      { cultivo: 'Tomate', dias: cultivosViables.tomate, color: '#ef4444' },
+      { cultivo: 'Banana', dias: cultivosViables.banana, color: '#f59e0b' },
+      { cultivo: 'Cacao',  dias: cultivosViables.cacao,  color: '#8B4513' },
+      { cultivo: 'Arroz',  dias: cultivosViables.arroz,  color: '#22c55e' },
+      { cultivo: 'Maíz',   dias: cultivosViables.maiz,   color: '#eab308' },
+    ];
+    let condicionesSecas = 0, condicionesModeradas = 0, excesoLluvias = 0;
+    datosFiltradosAdmin.forEach(d => {
+      if (d.precipitacion < 5) condicionesSecas++;
+      else if (d.precipitacion <= 20) condicionesModeradas++;
+      else excesoLluvias++;
+    });
+    const datosPerfilClimatico = [
+      { name: 'Condiciones Secas',      value: condicionesSecas,      porcentaje: ((condicionesSecas      / totalDias) * 100).toFixed(1), color: '#f59e0b' },
+      { name: 'Condiciones Moderadas',  value: condicionesModeradas,  porcentaje: ((condicionesModeradas  / totalDias) * 100).toFixed(1), color: '#22c55e' },
+      { name: 'Exceso de Lluvias',      value: excesoLluvias,         porcentaje: ((excesoLluvias         / totalDias) * 100).toFixed(1), color: '#3b82f6' },
+    ];
+    const datosPorMes = {};
+    datosFiltradosAdmin.forEach(d => {
+      const mes = new Date(d.date).getMonth();
+      if (!datosPorMes[mes]) datosPorMes[mes] = { total: 0, tomate: 0, banana: 0, cacao: 0, arroz: 0, maiz: 0 };
+      datosPorMes[mes].total++;
+      if (d.tomate === 'Sí') datosPorMes[mes].tomate++;
+      if (d.banana === 'Sí') datosPorMes[mes].banana++;
+      if (d.cacao  === 'Sí') datosPorMes[mes].cacao++;
+      if (d.arroz  === 'Sí') datosPorMes[mes].arroz++;
+      if (d.maiz   === 'Sí') datosPorMes[mes].maiz++;
+    });
+    const nombresMeses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const tendenciaMensual = Object.entries(datosPorMes).map(([mes, data]) => ({
+      mes: nombresMeses[parseInt(mes)],
+      mesNum: parseInt(mes),
+      tomate: data.total > 0 ? ((data.tomate / data.total) * 100).toFixed(1) : 0,
+      banana: data.total > 0 ? ((data.banana / data.total) * 100).toFixed(1) : 0,
+      cacao:  data.total > 0 ? ((data.cacao  / data.total) * 100).toFixed(1) : 0,
+      arroz:  data.total > 0 ? ((data.arroz  / data.total) * 100).toFixed(1) : 0,
+      maiz:   data.total > 0 ? ((data.maiz   / data.total) * 100).toFixed(1) : 0,
+    })).sort((a, b) => a.mesNum - b.mesNum);
+    const mejorMesPorCultivo = {};
+    ['tomate','banana','cacao','arroz','maiz'].forEach(cultivo => {
+      let mejorMes = tendenciaMensual[0];
+      tendenciaMensual.forEach(m => { if (parseFloat(m[cultivo]) > parseFloat(mejorMes?.[cultivo] || 0)) mejorMes = m; });
+      mejorMesPorCultivo[cultivo] = mejorMes?.mes || 'N/A';
+    });
+    return { totalDias, viabilidadCultivos, datosViabilidadPie, datosBarra, datosPerfilClimatico, tendenciaMensual, mejorMesPorCultivo };
+  }, [datosFiltradosAdmin]);
+
   const obtenerRecomendaciones = () => {
     const temp = ultimoFirebase?.temperatura || ultimoRegistro?.temperatura || 0;
     const lluvia = ultimoFirebase?.lluvia || ultimoRegistro?.precipitacion || 0;
@@ -1248,6 +1326,156 @@ if (keys.length > 0) {
             onPredicciones={handlePrediccionesActualizadas}
             prediccionesML={prediccionesML}
           />
+
+          {datosDashboardAdmin && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-bold text-gray-800 text-center">
+                  📊 Análisis de Viabilidad de Cultivos
+                </h2>
+                <p className="text-center text-gray-500 mt-2">
+                  Análisis de {datosDashboardAdmin.totalDias} registros
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Viabilidad Promedio General (%)</h3>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie data={datosDashboardAdmin.datosViabilidadPie} cx="50%" cy="50%" labelLine={true}
+                        label={({ name, value }) => `${name} ${value}%`} outerRadius={90} dataKey="value">
+                        {datosDashboardAdmin.datosViabilidadPie.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value}%`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Total de Datos Viables</h3>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={datosDashboardAdmin.datosBarra}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="cultivo" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="dias" name="Días Viables">
+                        {datosDashboardAdmin.datosBarra.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Distribución de Perfiles Climáticos</h3>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie data={datosDashboardAdmin.datosPerfilClimatico} cx="50%" cy="50%" labelLine={true}
+                        label={({ porcentaje }) => `${porcentaje}%`} outerRadius={90} dataKey="value">
+                        {datosDashboardAdmin.datosPerfilClimatico.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORES_CLIMA_ADMIN[index]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name, props) => [`${value} días (${props.payload.porcentaje}%)`, props.payload.name]} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Tendencia de Viabilidad</h3>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <LineChart data={datosDashboardAdmin.tendenciaMensual}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="mes" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip formatter={(value) => `${value}%`} />
+                      <Legend />
+                      <Line type="monotone" dataKey="tomate" stroke="#ef4444" name="Tomate" strokeWidth={2} />
+                      <Line type="monotone" dataKey="banana" stroke="#f59e0b" name="Banana" strokeWidth={2} />
+                      <Line type="monotone" dataKey="cacao"  stroke="#8B4513" name="Cacao"  strokeWidth={2} />
+                      <Line type="monotone" dataKey="arroz"  stroke="#22c55e" name="Arroz"  strokeWidth={2} />
+                      <Line type="monotone" dataKey="maiz"   stroke="#eab308" name="Maíz"   strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">📋 Resumen Estadístico</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-gray-300 px-4 py-3 text-left">Cultivo</th>
+                          <th className="border border-gray-300 px-4 py-3 text-center">% Viabilidad</th>
+                          <th className="border border-gray-300 px-4 py-3 text-center">Mejor Mes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {['tomate','banana','cacao','arroz','maiz'].map((cultivo) => (
+                          <tr key={cultivo} className="hover:bg-gray-50">
+                            <td className="border border-gray-300 px-4 py-3 capitalize font-medium">
+                              <span className="flex items-center gap-2">
+                                {cultivo === 'tomate' && '🍅'}
+                                {cultivo === 'banana' && '🍌'}
+                                {cultivo === 'cacao'  && '🌰'}
+                                {cultivo === 'arroz'  && '🌾'}
+                                {cultivo === 'maiz'   && '🌽'}
+                                {cultivo.charAt(0).toUpperCase() + cultivo.slice(1)}
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-center">
+                              <span className="font-bold px-2 py-1 rounded"
+                                style={{ backgroundColor: `${COLORES_CULTIVOS_ADMIN[cultivo]}20`, color: COLORES_CULTIVOS_ADMIN[cultivo] }}>
+                                {datosDashboardAdmin.viabilidadCultivos[cultivo].porcentaje}%
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-center">
+                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
+                                {datosDashboardAdmin.mejorMesPorCultivo[cultivo]}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+                <h3 className="text-xl font-bold mb-4">💡 Insights Clave</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
+                    <p className="text-sm opacity-90">Cultivo más viable</p>
+                    <p className="text-2xl font-bold">🌰 Cacao</p>
+                    <p className="text-sm">{datosDashboardAdmin.viabilidadCultivos.cacao.porcentaje}% de los días</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
+                    <p className="text-sm opacity-90">Condición climática dominante</p>
+                    <p className="text-2xl font-bold">
+                      {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).name}
+                    </p>
+                    <p className="text-sm">
+                      {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).porcentaje}% del período
+                    </p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
+                    <p className="text-sm opacity-90">Total datos analizados</p>
+                    <p className="text-2xl font-bold">{datosDashboardAdmin.totalDias}</p>
+                    <p className="text-sm">registros procesados</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
       
