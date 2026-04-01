@@ -1162,7 +1162,18 @@ if (keys.length > 0) {
       let errorMsg = 'No se pudo crear el usuario';
       if (data && typeof data === 'object') {
         if (data.error) {
-          errorMsg = data.error;
+          const e = String(data.error).toLowerCase();
+          if (e.includes('username') || e.includes('auth_user.username')) {
+            errorMsg = 'El nombre de usuario ya está registrado';
+          } else if (e.includes('email')) {
+            errorMsg = 'El correo electrónico ya está registrado';
+          } else if (e.includes('cedula')) {
+            errorMsg = 'La cédula ya está registrada';
+          } else if (e.includes('duplicate entry')) {
+            errorMsg = 'Ya existe un usuario con esos datos';
+          } else {
+            errorMsg = data.error;
+          }
         } else if (data.email) {
           errorMsg = 'El correo electrónico ya está registrado';
         } else if (data.cedula) {
