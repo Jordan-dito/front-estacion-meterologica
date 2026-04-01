@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   UserPlus, Users, BarChart3, TrendingUp, Thermometer, Droplets,
-  Sun, CloudRain, Wind, Activity, RefreshCw, Database, AlertTriangle, X
+  Sun, CloudRain, Wind, Activity, RefreshCw, Database, AlertTriangle, X,
+  CheckCircle, Trash2
 } from 'lucide-react';
 import axios from 'axios';
 import Papa from 'papaparse';
@@ -75,6 +76,70 @@ const CustomAlert = ({ mensaje, onClose }) => (
         onClick={onClose}
         className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
       >
+        <X size={18} />
+      </button>
+    </div>
+  </div>
+);
+
+// ============================================================================
+// TOAST DE NOTIFICACIÓN (éxito / error)
+// ============================================================================
+const Toast = ({ tipo, mensaje, onClose }) => {
+  const esExito = tipo === 'success';
+  return (
+    <div className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl text-white
+      transition-all duration-300 min-w-[280px] max-w-sm
+      ${esExito ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-rose-600'}`}
+    >
+      <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center
+        ${esExito ? 'bg-white/20' : 'bg-white/20'}`}
+      >
+        {esExito
+          ? <CheckCircle size={20} className="text-white" />
+          : <AlertTriangle size={20} className="text-white" />}
+      </div>
+      <p className="flex-1 text-sm font-semibold leading-tight">{mensaje}</p>
+      <button onClick={onClose} className="flex-shrink-0 text-white/70 hover:text-white transition">
+        <X size={18} />
+      </button>
+    </div>
+  );
+};
+
+// ============================================================================
+// MODAL CONFIRMAR ELIMINAR
+// ============================================================================
+const ModalConfirmarEliminar = ({ nombre, onConfirmar, onCancelar }) => (
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onCancelar} />
+    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 flex flex-col items-center gap-4">
+      <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-100">
+        <Trash2 className="text-red-500" size={32} />
+      </div>
+      <div className="text-center">
+        <h3 className="text-lg font-bold text-gray-800 mb-1">Eliminar usuario</h3>
+        <p className="text-sm text-gray-500 leading-relaxed">
+          ¿Estás seguro de que quieres eliminar a <strong className="text-gray-800">{nombre}</strong>?<br />
+          Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div className="flex gap-3 w-full mt-1">
+        <button
+          onClick={onCancelar}
+          className="flex-1 py-2 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={onConfirmar}
+          className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold transition flex items-center justify-center gap-2"
+        >
+          <Trash2 size={16} />
+          Eliminar
+        </button>
+      </div>
+      <button onClick={onCancelar} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition">
         <X size={18} />
       </button>
     </div>
@@ -631,6 +696,7 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
   const [editando, setEditando] = useState(false);
   const [mensajeEdicion, setMensajeEdicion] = useState(null);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null); // { id, nombre }
 
   const handleCrearUsuario = async (formData) => {
     const resultado = await onCrearUsuario(formData);
@@ -645,38 +711,39 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
       await axios.put(`${apiBaseUrl}/usuarios/${id}/`, data);
       setUsuarioEditar(null);
       if (onRefresh) await onRefresh();
-      setMensajeEdicion({ tipo: 'success', mensaje: '✅ Usuario actualizado correctamente' });
-      setTimeout(() => setMensajeEdicion(null), 3000);
+      setMensajeEdicion({ tipo: 'success', mensaje: 'Usuario actualizado correctamente' });
+      setTimeout(() => setMensajeEdicion(null), 3500);
     } catch (err) {
       const d = err.response?.data;
       let msg = 'Error al actualizar usuario';
       if (d?.error) msg = d.error;
       else if (d?.email) msg = 'El correo electrónico ya está registrado';
       else if (d?.detail) msg = d.detail;
-      setMensajeEdicion({ tipo: 'error', mensaje: `❌ ${msg}` });
+      setMensajeEdicion({ tipo: 'error', mensaje: msg });
       setTimeout(() => setMensajeEdicion(null), 4000);
     } finally {
       setEditando(false);
     }
   };
 
-  const handleEliminarUsuario = async (usuarioId, usuarioNombre) => {
-    const confirmar = window.confirm(
-      `¿Estás seguro de que quieres eliminar a ${usuarioNombre}? Esta acción no se puede deshacer.`
-    );
+  const handleEliminarUsuario = (usuarioId, usuarioNombre) => {
+    setConfirmarEliminar({ id: usuarioId, nombre: usuarioNombre });
+  };
 
-    if (!confirmar) return;
-
+  const confirmarEliminacion = async () => {
+    const { id, nombre } = confirmarEliminar;
+    setConfirmarEliminar(null);
     try {
       setEliminando(true);
       setMensajeEliminar(null);
-      await axios.delete(`${apiBaseUrl}/usuarios/${usuarioId}/`);
-      setMensajeEliminar({ tipo: 'success', mensaje: `✅ ${usuarioNombre} eliminado exitosamente` });
+      await axios.delete(`${apiBaseUrl}/usuarios/${id}/`);
+      setMensajeEliminar({ tipo: 'success', mensaje: `${nombre} eliminado exitosamente` });
       if (onRefresh) await onRefresh();
-      setTimeout(() => setMensajeEliminar(null), 3000);
+      setTimeout(() => setMensajeEliminar(null), 3500);
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message || 'Error al eliminar usuario';
-      setMensajeEliminar({ tipo: 'error', mensaje: `❌ ${errorMsg}` });
+      const errorMsg = err.response?.data?.error || 'Error al eliminar usuario';
+      setMensajeEliminar({ tipo: 'error', mensaje: errorMsg });
+      setTimeout(() => setMensajeEliminar(null), 4000);
     } finally {
       setEliminando(false);
     }
@@ -684,6 +751,23 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
+      {/* Toasts */}
+      {mensajeEdicion && (
+        <Toast tipo={mensajeEdicion.tipo} mensaje={mensajeEdicion.mensaje} onClose={() => setMensajeEdicion(null)} />
+      )}
+      {mensajeEliminar && (
+        <Toast tipo={mensajeEliminar.tipo} mensaje={mensajeEliminar.mensaje} onClose={() => setMensajeEliminar(null)} />
+      )}
+
+      {/* Modal confirmar eliminación */}
+      {confirmarEliminar && (
+        <ModalConfirmarEliminar
+          nombre={confirmarEliminar.nombre}
+          onConfirmar={confirmarEliminacion}
+          onCancelar={() => setConfirmarEliminar(null)}
+        />
+      )}
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <Users className="text-green-600" size={28} />
@@ -697,26 +781,6 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
           ➕ Crear Usuario
         </button>
       </div>
-
-      {mensajeEdicion && (
-        <div className={`mb-4 px-4 py-3 rounded border font-semibold ${
-          mensajeEdicion.tipo === 'success'
-            ? 'bg-green-100 border-green-400 text-green-700'
-            : 'bg-red-100 border-red-400 text-red-700'
-        }`}>
-          {mensajeEdicion.mensaje}
-        </div>
-      )}
-
-      {mensajeEliminar && (
-        <div className={`mb-4 px-4 py-3 rounded border ${
-          mensajeEliminar.tipo === 'success'
-            ? 'bg-green-100 border-green-400 text-green-700'
-            : 'bg-red-100 border-red-400 text-red-700'
-        }`}>
-          {mensajeEliminar.mensaje}
-        </div>
-      )}
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
