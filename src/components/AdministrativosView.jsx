@@ -1142,14 +1142,17 @@ if (keys.length > 0) {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${apiBaseUrl}/crear-usuario/`, {
+      const payload = {
         nombre: formData.nombre,
         email: formData.email,
         cedula: formData.cedula,
         password: formData.password,
         password_confirm: formData.password_confirm,
         rol: formData.rol,
-      });
+      };
+      console.log('📤 Creando usuario, payload:', payload);
+      const response = await axios.post(`${apiBaseUrl}/crear-usuario/`, payload);
+      console.log('✅ Respuesta del servidor:', response.data);
 
       setSuccess(`✅ ${response.data.mensaje}`);
       await fetchUsuarios();
@@ -1158,6 +1161,7 @@ if (keys.length > 0) {
       }, 3000);
       return { success: true };
     } catch (err) {
+      console.error('❌ Error al crear usuario:', err.response?.status, err.response?.data);
       const data = err.response?.data;
       let errorMsg = 'No se pudo crear el usuario';
       if (data && typeof data === 'object') {
