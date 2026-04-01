@@ -629,6 +629,7 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
   const [mensajeEliminar, setMensajeEliminar] = useState(null);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [editando, setEditando] = useState(false);
+  const [mensajeEdicion, setMensajeEdicion] = useState(null);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
 
   const handleCrearUsuario = async (formData) => {
@@ -644,9 +645,16 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
       await axios.put(`${apiBaseUrl}/usuarios/${id}/`, data);
       setUsuarioEditar(null);
       if (onRefresh) await onRefresh();
-      alert("✅ Usuario actualizado correctamente");
+      setMensajeEdicion({ tipo: 'success', mensaje: '✅ Usuario actualizado correctamente' });
+      setTimeout(() => setMensajeEdicion(null), 3000);
     } catch (err) {
-      alert("❌ Error al actualizar usuario: " + (err.response?.data?.error || err.message));
+      const d = err.response?.data;
+      let msg = 'Error al actualizar usuario';
+      if (d?.error) msg = d.error;
+      else if (d?.email) msg = 'El correo electrónico ya está registrado';
+      else if (d?.detail) msg = d.detail;
+      setMensajeEdicion({ tipo: 'error', mensaje: `❌ ${msg}` });
+      setTimeout(() => setMensajeEdicion(null), 4000);
     } finally {
       setEditando(false);
     }
@@ -689,6 +697,16 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
           ➕ Crear Usuario
         </button>
       </div>
+
+      {mensajeEdicion && (
+        <div className={`mb-4 px-4 py-3 rounded border font-semibold ${
+          mensajeEdicion.tipo === 'success'
+            ? 'bg-green-100 border-green-400 text-green-700'
+            : 'bg-red-100 border-red-400 text-red-700'
+        }`}>
+          {mensajeEdicion.mensaje}
+        </div>
+      )}
 
       {mensajeEliminar && (
         <div className={`mb-4 px-4 py-3 rounded border ${
@@ -1076,7 +1094,27 @@ if (keys.length > 0) {
       }, 3000);
       return { success: true };
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message || 'Error al crear usuario';
+      const data = err.response?.data;
+      let errorMsg = 'Error al crear usuario';
+      if (data) {
+        if (data.error) {
+          errorMsg = data.error;
+        } else if (data.email) {
+          errorMsg = `El correo electrónico ya está registrado`;
+        } else if (data.cedula) {
+          errorMsg = `La cédula ya está registrada`;
+        } else if (data.username) {
+          errorMsg = `El nombre de usuario ya existe`;
+        } else if (data.detail) {
+          errorMsg = data.detail;
+        } else {
+          const firstKey = Object.keys(data)[0];
+          if (firstKey) {
+            const val = data[firstKey];
+            errorMsg = Array.isArray(val) ? val[0] : String(val);
+          }
+        }
+      }
       setError(`❌ ${errorMsg}`);
       return { success: false };
     } finally {
