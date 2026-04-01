@@ -1290,32 +1290,71 @@ if (keys.length > 0) {
 
       {activeTab === 'analisis' && (
         <>
-          <div className="bg-white rounded-xl shadow-lg p-4 flex flex-wrap items-end gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Desde</label>
-              <input
-                type="date"
-                value={filtroInicioAdmin}
-                onChange={e => setFiltroInicioAdmin(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          {/* HEADER CON FILTROS */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-6 py-5">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/15 rounded-xl p-3">
+                    <TrendingUp size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-xl">Análisis de Cultivos</h3>
+                    <p className="text-blue-200 text-sm mt-0.5">
+                      {filtroInicioAdmin || filtroFinAdmin
+                        ? `Período: ${filtroInicioAdmin || '—'} → ${filtroFinAdmin || '—'}`
+                        : `${datosFiltradosAdmin.length.toLocaleString()} registros totales`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 border border-white/20">
+                    <label className="text-blue-100 text-xs font-semibold uppercase tracking-wide">Desde</label>
+                    <input
+                      type="date"
+                      value={filtroInicioAdmin}
+                      onChange={e => setFiltroInicioAdmin(e.target.value)}
+                      className="bg-transparent text-white text-sm focus:outline-none placeholder-blue-300"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 border border-white/20">
+                    <label className="text-blue-100 text-xs font-semibold uppercase tracking-wide">Hasta</label>
+                    <input
+                      type="date"
+                      value={filtroFinAdmin}
+                      onChange={e => setFiltroFinAdmin(e.target.value)}
+                      className="bg-transparent text-white text-sm focus:outline-none"
+                    />
+                  </div>
+                  {(filtroInicioAdmin || filtroFinAdmin) && (
+                    <button
+                      onClick={() => { setFiltroInicioAdmin(''); setFiltroFinAdmin(''); }}
+                      className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-3 py-2 rounded-xl transition border border-white/20"
+                    >
+                      <X size={14} /> Limpiar
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Hasta</label>
-              <input
-                type="date"
-                value={filtroFinAdmin}
-                onChange={e => setFiltroFinAdmin(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              onClick={() => { setFiltroInicioAdmin(''); setFiltroFinAdmin(''); }}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition"
-            >
-              Limpiar
-            </button>
+            {/* KPI BAR */}
+            {datosDashboardAdmin && (
+              <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-gray-100">
+                {['tomate','banana','cacao','arroz','maiz'].map((c) => (
+                  <div key={c} className="px-4 py-3 text-center hover:bg-gray-50 transition">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                      {c === 'tomate' ? '🍅' : c === 'banana' ? '🍌' : c === 'cacao' ? '🌰' : c === 'arroz' ? '🌾' : '🌽'} {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </p>
+                    <p className="text-xl font-bold" style={{ color: COLORES_CULTIVOS_ADMIN[c] }}>
+                      {datosDashboardAdmin.viabilidadCultivos[c].porcentaje}%
+                    </p>
+                    <p className="text-xs text-gray-400">viabilidad</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
           <DashboardProfesor
             mockHistoricalData={mockHistoricalDataAdmin}
             stats={statsAdmin}
@@ -1329,151 +1368,212 @@ if (keys.length > 0) {
 
           {datosDashboardAdmin && (
             <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-800 text-center">
-                  📊 Análisis de Viabilidad de Cultivos
-                </h2>
-                <p className="text-center text-gray-500 mt-2">
-                  Análisis de {datosDashboardAdmin.totalDias} registros
-                </p>
-              </div>
 
+              {/* FILA 1: 3 GRÁFICAS */}
               <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Viabilidad Promedio General (%)</h3>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie data={datosDashboardAdmin.datosViabilidadPie} cx="50%" cy="50%" labelLine={true}
-                        label={({ name, value }) => `${name} ${value}%`} outerRadius={90} dataKey="value">
-                        {datosDashboardAdmin.datosViabilidadPie.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => `${value}%`} />
-                    </PieChart>
-                  </ResponsiveContainer>
+
+                {/* DONUT: Viabilidad */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="px-6 pt-5 pb-2 border-b border-gray-50">
+                    <span className="text-xs font-bold uppercase tracking-widest text-blue-500">Viabilidad</span>
+                    <h3 className="text-base font-bold text-gray-800 mt-1">Porcentaje por Cultivo</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Promedio general del período</p>
+                  </div>
+                  <div className="p-4">
+                    <ResponsiveContainer width="100%" height={260}>
+                      <PieChart>
+                        <Pie
+                          data={datosDashboardAdmin.datosViabilidadPie}
+                          cx="50%" cy="50%"
+                          innerRadius={60} outerRadius={95}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {datosDashboardAdmin.datosViabilidadPie.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={2} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name) => [`${value}%`, name]}
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '13px' }}
+                        />
+                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Total de Datos Viables</h3>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={datosDashboardAdmin.datosBarra}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="cultivo" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="dias" name="Días Viables">
-                        {datosDashboardAdmin.datosBarra.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                {/* BAR: Días viables */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="px-6 pt-5 pb-2 border-b border-gray-50">
+                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Producción</span>
+                    <h3 className="text-base font-bold text-gray-800 mt-1">Días Viables por Cultivo</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Total de registros favorables</p>
+                  </div>
+                  <div className="p-4">
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={datosDashboardAdmin.datosBarra} barCategoryGap="30%">
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                        <XAxis dataKey="cultivo" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                        <Tooltip
+                          formatter={(value) => [`${value.toLocaleString()} días`, 'Viables']}
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '13px' }}
+                          cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                        />
+                        <Bar dataKey="dias" radius={[8, 8, 0, 0]}>
+                          {datosDashboardAdmin.datosBarra.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Distribución de Perfiles Climáticos</h3>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie data={datosDashboardAdmin.datosPerfilClimatico} cx="50%" cy="50%" labelLine={true}
-                        label={({ porcentaje }) => `${porcentaje}%`} outerRadius={90} dataKey="value">
-                        {datosDashboardAdmin.datosPerfilClimatico.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORES_CLIMA_ADMIN[index]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value, name, props) => [`${value} días (${props.payload.porcentaje}%)`, props.payload.name]} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
+                {/* DONUT: Perfil climático */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="px-6 pt-5 pb-2 border-b border-gray-50">
+                    <span className="text-xs font-bold uppercase tracking-widest text-amber-500">Clima</span>
+                    <h3 className="text-base font-bold text-gray-800 mt-1">Perfil Climático</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Distribución de condiciones</p>
+                  </div>
+                  <div className="p-4">
+                    <ResponsiveContainer width="100%" height={260}>
+                      <PieChart>
+                        <Pie
+                          data={datosDashboardAdmin.datosPerfilClimatico}
+                          cx="50%" cy="50%"
+                          innerRadius={60} outerRadius={95}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {datosDashboardAdmin.datosPerfilClimatico.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORES_CLIMA_ADMIN[index]} stroke="white" strokeWidth={2} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name, props) => [`${value} días (${props.payload.porcentaje}%)`, props.payload.name]}
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '13px' }}
+                        />
+                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
+              {/* FILA 2: LÍNEA + TABLA */}
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Tendencia de Viabilidad</h3>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <LineChart data={datosDashboardAdmin.tendenciaMensual}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mes" />
-                      <YAxis domain={[0, 100]} />
-                      <Tooltip formatter={(value) => `${value}%`} />
-                      <Legend />
-                      <Line type="monotone" dataKey="tomate" stroke="#ef4444" name="Tomate" strokeWidth={2} />
-                      <Line type="monotone" dataKey="banana" stroke="#f59e0b" name="Banana" strokeWidth={2} />
-                      <Line type="monotone" dataKey="cacao"  stroke="#8B4513" name="Cacao"  strokeWidth={2} />
-                      <Line type="monotone" dataKey="arroz"  stroke="#22c55e" name="Arroz"  strokeWidth={2} />
-                      <Line type="monotone" dataKey="maiz"   stroke="#eab308" name="Maíz"   strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+
+                {/* LINE CHART */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="px-6 pt-5 pb-2 border-b border-gray-50">
+                    <span className="text-xs font-bold uppercase tracking-widest text-purple-500">Tendencia</span>
+                    <h3 className="text-base font-bold text-gray-800 mt-1">Viabilidad Mensual</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Evolución porcentual por mes</p>
+                  </div>
+                  <div className="p-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={datosDashboardAdmin.tendenciaMensual}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} unit="%" />
+                        <Tooltip
+                          formatter={(value) => [`${value}%`]}
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '13px' }}
+                        />
+                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
+                        <Line type="monotone" dataKey="tomate" stroke="#ef4444" name="Tomate" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444' }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="banana" stroke="#f59e0b" name="Banana" strokeWidth={2.5} dot={{ r: 3, fill: '#f59e0b' }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="cacao"  stroke="#8B4513" name="Cacao"  strokeWidth={2.5} dot={{ r: 3, fill: '#8B4513' }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="arroz"  stroke="#22c55e" name="Arroz"  strokeWidth={2.5} dot={{ r: 3, fill: '#22c55e' }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="maiz"   stroke="#eab308" name="Maíz"   strokeWidth={2.5} dot={{ r: 3, fill: '#eab308' }} activeDot={{ r: 5 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">📋 Resumen Estadístico</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-300 px-4 py-3 text-left">Cultivo</th>
-                          <th className="border border-gray-300 px-4 py-3 text-center">% Viabilidad</th>
-                          <th className="border border-gray-300 px-4 py-3 text-center">Mejor Mes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {['tomate','banana','cacao','arroz','maiz'].map((cultivo) => (
-                          <tr key={cultivo} className="hover:bg-gray-50">
-                            <td className="border border-gray-300 px-4 py-3 capitalize font-medium">
-                              <span className="flex items-center gap-2">
-                                {cultivo === 'tomate' && '🍅'}
-                                {cultivo === 'banana' && '🍌'}
-                                {cultivo === 'cacao'  && '🌰'}
-                                {cultivo === 'arroz'  && '🌾'}
-                                {cultivo === 'maiz'   && '🌽'}
-                                {cultivo.charAt(0).toUpperCase() + cultivo.slice(1)}
+                {/* TABLA CON PROGRESS BARS */}
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  <div className="px-6 pt-5 pb-2 border-b border-gray-50">
+                    <span className="text-xs font-bold uppercase tracking-widest text-indigo-500">Resumen</span>
+                    <h3 className="text-base font-bold text-gray-800 mt-1">Ranking de Viabilidad</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Porcentaje y mejor mes por cultivo</p>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    {['tomate','banana','cacao','arroz','maiz']
+                      .map(c => ({ c, pct: parseFloat(datosDashboardAdmin.viabilidadCultivos[c].porcentaje) }))
+                      .sort((a, b) => b.pct - a.pct)
+                      .map(({ c, pct }) => (
+                        <div key={c}>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                              {c === 'tomate' ? '🍅' : c === 'banana' ? '🍌' : c === 'cacao' ? '🌰' : c === 'arroz' ? '🌾' : '🌽'}
+                              {c.charAt(0).toUpperCase() + c.slice(1)}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">
+                                {datosDashboardAdmin.mejorMesPorCultivo[c]}
                               </span>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-center">
-                              <span className="font-bold px-2 py-1 rounded"
-                                style={{ backgroundColor: `${COLORES_CULTIVOS_ADMIN[cultivo]}20`, color: COLORES_CULTIVOS_ADMIN[cultivo] }}>
-                                {datosDashboardAdmin.viabilidadCultivos[cultivo].porcentaje}%
-                              </span>
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-center">
-                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
-                                {datosDashboardAdmin.mejorMesPorCultivo[cultivo]}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                              <span className="text-sm font-bold" style={{ color: COLORES_CULTIVOS_ADMIN[c] }}>{pct}%</span>
+                            </div>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{ width: `${pct}%`, backgroundColor: COLORES_CULTIVOS_ADMIN[c] }}
+                            />
+                          </div>
+                        </div>
+                      ))}
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
-                <h3 className="text-xl font-bold mb-4">💡 Insights Clave</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                    <p className="text-sm opacity-90">Cultivo más viable</p>
-                    <p className="text-2xl font-bold">🌰 Cacao</p>
-                    <p className="text-sm">{datosDashboardAdmin.viabilidadCultivos.cacao.porcentaje}% de los días</p>
+              {/* INSIGHTS */}
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="bg-white/20 rounded-xl p-3">
+                      <span className="text-2xl">🌰</span>
+                    </div>
+                    <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-semibold">Top cultivo</span>
                   </div>
-                  <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                    <p className="text-sm opacity-90">Condición climática dominante</p>
-                    <p className="text-2xl font-bold">
-                      {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).name}
-                    </p>
-                    <p className="text-sm">
-                      {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).porcentaje}% del período
-                    </p>
+                  <p className="text-white/70 text-sm mb-1">Cultivo más viable</p>
+                  <p className="text-3xl font-extrabold">Cacao</p>
+                  <p className="text-white/80 text-sm mt-2">{datosDashboardAdmin.viabilidadCultivos.cacao.porcentaje}% de los días analizado</p>
+                </div>
+
+                <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl shadow-lg p-6 text-white">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="bg-white/20 rounded-xl p-3">
+                      <CloudRain size={24} className="text-white" />
+                    </div>
+                    <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-semibold">Clima</span>
                   </div>
-                  <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                    <p className="text-sm opacity-90">Total datos analizados</p>
-                    <p className="text-2xl font-bold">{datosDashboardAdmin.totalDias}</p>
-                    <p className="text-sm">registros procesados</p>
+                  <p className="text-white/70 text-sm mb-1">Condición dominante</p>
+                  <p className="text-2xl font-extrabold leading-tight">
+                    {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).name}
+                  </p>
+                  <p className="text-white/80 text-sm mt-2">
+                    {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).porcentaje}% del período
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="bg-white/20 rounded-xl p-3">
+                      <Database size={24} className="text-white" />
+                    </div>
+                    <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-semibold">Dataset</span>
                   </div>
+                  <p className="text-white/70 text-sm mb-1">Total analizado</p>
+                  <p className="text-3xl font-extrabold">{datosDashboardAdmin.totalDias.toLocaleString()}</p>
+                  <p className="text-white/80 text-sm mt-2">registros procesados</p>
                 </div>
               </div>
+
             </div>
           )}
         </>
