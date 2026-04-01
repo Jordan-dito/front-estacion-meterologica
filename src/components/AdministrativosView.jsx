@@ -1095,16 +1095,16 @@ if (keys.length > 0) {
       return { success: true };
     } catch (err) {
       const data = err.response?.data;
-      let errorMsg = 'Error al crear usuario';
-      if (data) {
+      let errorMsg = 'No se pudo crear el usuario';
+      if (data && typeof data === 'object') {
         if (data.error) {
           errorMsg = data.error;
         } else if (data.email) {
-          errorMsg = `El correo electrónico ya está registrado`;
+          errorMsg = 'El correo electrónico ya está registrado';
         } else if (data.cedula) {
-          errorMsg = `La cédula ya está registrada`;
+          errorMsg = 'La cédula ya está registrada';
         } else if (data.username) {
-          errorMsg = `El nombre de usuario ya existe`;
+          errorMsg = 'El nombre de usuario ya existe';
         } else if (data.detail) {
           errorMsg = data.detail;
         } else {
@@ -1114,6 +1114,8 @@ if (keys.length > 0) {
             errorMsg = Array.isArray(val) ? val[0] : String(val);
           }
         }
+      } else if (typeof data === 'string' && data.length > 0 && data.length < 200) {
+        errorMsg = data;
       }
       setError(`❌ ${errorMsg}`);
       return { success: false };
