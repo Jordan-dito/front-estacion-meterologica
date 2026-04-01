@@ -1345,11 +1345,13 @@ if (keys.length > 0) {
                 <div className="flex items-center gap-2 bg-white/8 rounded-xl px-4 py-2.5 border border-white/10">
                   <label className="text-slate-400 text-xs font-semibold uppercase tracking-wide">Desde</label>
                   <input type="date" value={filtroInicioAdmin} onChange={e => setFiltroInicioAdmin(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
                     className="bg-transparent text-white text-sm focus:outline-none" style={{ colorScheme: 'dark' }} />
                 </div>
                 <div className="flex items-center gap-2 bg-white/8 rounded-xl px-4 py-2.5 border border-white/10">
                   <label className="text-slate-400 text-xs font-semibold uppercase tracking-wide">Hasta</label>
                   <input type="date" value={filtroFinAdmin} onChange={e => setFiltroFinAdmin(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
                     className="bg-transparent text-white text-sm focus:outline-none" style={{ colorScheme: 'dark' }} />
                 </div>
                 {(filtroInicioAdmin || filtroFinAdmin) && (
