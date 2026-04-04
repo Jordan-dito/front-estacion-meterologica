@@ -697,12 +697,20 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
   const [mensajeEdicion, setMensajeEdicion] = useState(null);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
   const [confirmarEliminar, setConfirmarEliminar] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const USUARIOS_POR_PAGINA = 8;
 
   const usuariosFiltrados = usuarios.filter(u => {
     if (filtroEstado === 'activos') return u.is_active !== false;
     if (filtroEstado === 'inactivos') return u.is_active === false;
     return true;
   });
+
+  const totalPaginas = Math.ceil(usuariosFiltrados.length / USUARIOS_POR_PAGINA);
+  const usuariosPagina = usuariosFiltrados.slice(
+    (paginaActual - 1) * USUARIOS_POR_PAGINA,
+    paginaActual * USUARIOS_POR_PAGINA
+  );
 
   const handleToggleActivo = async (usuario) => {
     try {
@@ -802,7 +810,7 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
         {['todos', 'activos', 'inactivos'].map(f => (
           <button
             key={f}
-            onClick={() => setFiltroEstado(f)}
+            onClick={() => { setFiltroEstado(f); setPaginaActual(1); }}
             className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition ${
               filtroEstado === f
                 ? 'bg-blue-600 text-white border-blue-600'
@@ -830,7 +838,7 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {usuariosFiltrados.map((usuario) => (
+            {usuariosPagina.map((usuario) => (
               <tr key={usuario.id} className="hover:bg-gray-50 transition">
                 <td className="px-4 py-3 text-sm font-semibold text-gray-800">{usuario.username}</td>
                 <td className="px-4 py-3 text-sm text-gray-600">{usuario.email}</td>
@@ -892,8 +900,39 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
         </table>
       </div>
 
-      {usuarios.length === 0 && (
-        <p className="text-center text-gray-500 mt-4">No hay usuarios todavía</p>
+      {usuariosFiltrados.length === 0 && (
+        <p className="text-center text-gray-500 mt-4">No hay usuarios</p>
+      )}
+
+      {/* Paginado */}
+      {totalPaginas > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-4">
+          <button
+            onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+            disabled={paginaActual === 1}
+            className="px-3 py-1 rounded border text-sm font-semibold disabled:opacity-40 hover:bg-gray-100 transition"
+          >
+            ← Anterior
+          </button>
+          {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPaginaActual(p)}
+              className={`px-3 py-1 rounded border text-sm font-semibold transition ${
+                p === paginaActual ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-100'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+            disabled={paginaActual === totalPaginas}
+            className="px-3 py-1 rounded border text-sm font-semibold disabled:opacity-40 hover:bg-gray-100 transition"
+          >
+            Siguiente →
+          </button>
+        </div>
       )}
       
       {usuarioEditar && (
