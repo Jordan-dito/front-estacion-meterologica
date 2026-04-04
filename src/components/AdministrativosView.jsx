@@ -1502,32 +1502,32 @@ if (keys.length > 0) {
 )}
 
       {activeTab === 'analisis' && (
-        <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1a1035 50%, #0f1629 100%)' }}>
+        <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #bae6fd 0%, #a5f3fc 50%, #cffafe 100%)' }}>
           <div className="p-6 space-y-6">
 
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">Panel de Análisis</p>
-                <h2 className="text-3xl font-extrabold text-white">Viabilidad de Cultivos</h2>
-                <p className="text-slate-400 text-sm mt-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-sky-600 mb-1">Panel de Análisis</p>
+                <h2 className="text-3xl font-extrabold text-slate-800">Viabilidad de Cultivos</h2>
+                <p className="text-slate-500 text-sm mt-1">
                   {filtroInicioAdmin || filtroFinAdmin
                     ? `Período filtrado: ${filtroInicioAdmin || '—'} → ${filtroFinAdmin || '—'}`
                     : `${datosFiltradosAdmin.length.toLocaleString()} registros analizados`}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 bg-white/8 rounded-xl px-4 py-2.5 border border-white/10">
-                  <label className="text-slate-400 text-xs font-semibold uppercase tracking-wide">Desde</label>
+                <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
+                  <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Desde</label>
                   <input type="date" value={filtroInicioAdmin} onChange={e => setFiltroInicioAdmin(e.target.value)}
                     max={new Date().toISOString().slice(0, 10)}
-                    className="bg-transparent text-white text-sm focus:outline-none" style={{ colorScheme: 'dark' }} />
+                    className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
-                <div className="flex items-center gap-2 bg-white/8 rounded-xl px-4 py-2.5 border border-white/10">
-                  <label className="text-slate-400 text-xs font-semibold uppercase tracking-wide">Hasta</label>
+                <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
+                  <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Hasta</label>
                   <input type="date" value={filtroFinAdmin} onChange={e => setFiltroFinAdmin(e.target.value)}
                     max={new Date().toISOString().slice(0, 10)}
-                    className="bg-transparent text-white text-sm focus:outline-none" style={{ colorScheme: 'dark' }} />
+                    className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
                 {(filtroInicioAdmin || filtroFinAdmin) && (
                   <button onClick={() => { setFiltroInicioAdmin(''); setFiltroFinAdmin(''); }}
@@ -1548,10 +1548,10 @@ if (keys.length > 0) {
                   { c: 'arroz',  emoji: '🌾', label: 'Arroz'  },
                   { c: 'maiz',   emoji: '🌽', label: 'Maíz'   },
                 ].map(({ c, emoji, label }) => (
-                  <div key={c} className="rounded-2xl p-4 border border-white/8 text-center"
-                    style={{ background: `linear-gradient(135deg, ${COLORES_CULTIVOS_ADMIN[c]}22, ${COLORES_CULTIVOS_ADMIN[c]}08)` }}>
+                  <div key={c} className="rounded-2xl p-4 border border-sky-200 text-center"
+                    style={{ background: 'rgba(255,255,255,0.7)' }}>
                     <p className="text-2xl mb-1">{emoji}</p>
-                    <p className="text-2xl font-extrabold text-white">{datosDashboardAdmin.viabilidadCultivos[c].porcentaje}%</p>
+                    <p className="text-2xl font-extrabold text-slate-800">{datosDashboardAdmin.viabilidadCultivos[c].porcentaje}%</p>
                     <p className="text-xs font-semibold mt-0.5" style={{ color: COLORES_CULTIVOS_ADMIN[c] }}>{label}</p>
                   </div>
                 ))}
@@ -1575,10 +1575,10 @@ if (keys.length > 0) {
                 <div className="grid md:grid-cols-3 gap-5">
 
                   {/* DONUT: Viabilidad */}
-                  <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#818cf8' }}>Viabilidad</span>
-                      <h3 className="text-base font-bold text-white mt-1">Porcentaje por Cultivo</h3>
+                      <h3 className="text-base font-bold text-slate-800 mt-1">Porcentaje por Cultivo</h3>
                       <p className="text-xs text-slate-500 mt-0.5">Promedio general del período</p>
                     </div>
                     <div className="p-4">
@@ -1591,28 +1591,28 @@ if (keys.length > 0) {
                             ))}
                           </Pie>
                           <Tooltip formatter={(v, n) => [`${v}%`, n]}
-                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f1f5f9', fontSize: '13px' }} />
-                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
+                            contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }} />
+                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   {/* BAR: Días viables */}
-                  <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#34d399' }}>Producción</span>
-                      <h3 className="text-base font-bold text-white mt-1">Días Viables por Cultivo</h3>
+                      <h3 className="text-base font-bold text-slate-800 mt-1">Días Viables por Cultivo</h3>
                       <p className="text-xs text-slate-500 mt-0.5">Total de registros favorables</p>
                     </div>
                     <div className="p-4">
                       <ResponsiveContainer width="100%" height={270}>
                         <BarChart data={datosDashboardAdmin.datosBarra} barCategoryGap="28%">
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,165,233,0.15)" vertical={false} />
                           <XAxis dataKey="cultivo" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip formatter={(v) => [`${v.toLocaleString()} días`, 'Viables']}
-                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f1f5f9', fontSize: '13px' }}
+                            contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }}
                             cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
                           <Bar dataKey="dias" radius={[8, 8, 0, 0]}>
                             {datosDashboardAdmin.datosBarra.map((entry, i) => (
@@ -1625,10 +1625,10 @@ if (keys.length > 0) {
                   </div>
 
                   {/* DONUT: Perfil climático */}
-                  <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#fbbf24' }}>Clima</span>
-                      <h3 className="text-base font-bold text-white mt-1">Perfil Climático</h3>
+                      <h3 className="text-base font-bold text-slate-800 mt-1">Perfil Climático</h3>
                       <p className="text-xs text-slate-500 mt-0.5">Distribución de condiciones</p>
                     </div>
                     <div className="p-4">
@@ -1641,8 +1641,8 @@ if (keys.length > 0) {
                             ))}
                           </Pie>
                           <Tooltip formatter={(v, n, p) => [`${v} días (${p.payload.porcentaje}%)`, p.payload.name]}
-                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f1f5f9', fontSize: '13px' }} />
-                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
+                            contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }} />
+                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -1653,21 +1653,21 @@ if (keys.length > 0) {
                 <div className="grid md:grid-cols-2 gap-5">
 
                   {/* LINE CHART */}
-                  <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#c084fc' }}>Tendencia</span>
-                      <h3 className="text-base font-bold text-white mt-1">Viabilidad Mensual</h3>
+                      <h3 className="text-base font-bold text-slate-800 mt-1">Viabilidad Mensual</h3>
                       <p className="text-xs text-slate-500 mt-0.5">Evolución porcentual por mes</p>
                     </div>
                     <div className="p-4">
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={datosDashboardAdmin.tendenciaMensual}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,165,233,0.15)" />
                           <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} unit="%" />
                           <Tooltip formatter={(v) => [`${v}%`]}
-                            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f1f5f9', fontSize: '13px' }} />
-                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }} />
+                            contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }} />
+                          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
                           <Line type="monotone" dataKey="tomate" stroke="#ef4444" name="Tomate" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                           <Line type="monotone" dataKey="banana" stroke="#f59e0b" name="Banana" strokeWidth={2.5} dot={{ r: 3, fill: '#f59e0b' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                           <Line type="monotone" dataKey="cacao"  stroke="#a78bfa" name="Cacao"  strokeWidth={2.5} dot={{ r: 3, fill: '#a78bfa' }} activeDot={{ r: 6, strokeWidth: 0 }} />
@@ -1679,10 +1679,10 @@ if (keys.length > 0) {
                   </div>
 
                   {/* RANKING */}
-                  <div className="rounded-2xl overflow-hidden border border-white/8" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                    <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#38bdf8' }}>Ranking</span>
-                      <h3 className="text-base font-bold text-white mt-1">Viabilidad por Cultivo</h3>
+                      <h3 className="text-base font-bold text-slate-800 mt-1">Viabilidad por Cultivo</h3>
                       <p className="text-xs text-slate-500 mt-0.5">Ordenado de mayor a menor</p>
                     </div>
                     <div className="p-6 space-y-5">
@@ -1697,7 +1697,7 @@ if (keys.length > 0) {
                                 <span className="text-base">
                                   {c === 'tomate' ? '🍅' : c === 'banana' ? '🍌' : c === 'cacao' ? '🌰' : c === 'arroz' ? '🌾' : '🌽'}
                                 </span>
-                                <span className="text-sm font-semibold text-slate-200">{c.charAt(0).toUpperCase() + c.slice(1)}</span>
+                                <span className="text-sm font-semibold text-slate-700">{c.charAt(0).toUpperCase() + c.slice(1)}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
@@ -1707,7 +1707,7 @@ if (keys.length > 0) {
                                 <span className="text-base font-extrabold" style={{ color: COLORES_CULTIVOS_ADMIN[c] }}>{pct}%</span>
                               </div>
                             </div>
-                            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                            <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(14,165,233,0.15)' }}>
                               <div className="h-full rounded-full"
                                 style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${COLORES_CULTIVOS_ADMIN[c]}cc, ${COLORES_CULTIVOS_ADMIN[c]})` }} />
                             </div>
