@@ -871,28 +871,30 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
                 <td className="px-4 py-3 text-sm text-gray-600">
                   {new Date(usuario.created_at).toLocaleDateString('es-ES')}
                 </td>
-                <td className="px-4 py-3 flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setUsuarioEditar(usuario)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs font-semibold transition"
-                  >
-                    ✏️ Editar
-                  </button>
-                  <button
-                    onClick={() => handleToggleActivo(usuario)}
-                    className={`px-3 py-1 text-white text-xs font-semibold rounded transition ${
-                      usuario.is_active !== false ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-600 hover:bg-green-700'
-                    }`}
-                  >
-                    {usuario.is_active !== false ? '🔒 Desactivar' : '🔓 Activar'}
-                  </button>
-                  <button
-                    onClick={() => handleEliminarUsuario(usuario.id, usuario.first_name || usuario.username)}
-                    disabled={eliminando}
-                    className="px-3 py-1 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white text-xs font-semibold rounded transition"
-                  >
-                    🗑️ Eliminar
-                  </button>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1 flex-nowrap">
+                    <button
+                      onClick={() => setUsuarioEditar(usuario)}
+                      className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs font-semibold transition whitespace-nowrap"
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
+                      onClick={() => handleToggleActivo(usuario)}
+                      className={`px-2 py-1 text-white text-xs font-semibold rounded transition whitespace-nowrap ${
+                        usuario.is_active !== false ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
+                      {usuario.is_active !== false ? '🔒 Desact.' : '🔓 Activar'}
+                    </button>
+                    <button
+                      onClick={() => handleEliminarUsuario(usuario.id, usuario.first_name || usuario.username)}
+                      disabled={eliminando}
+                      className="px-2 py-1 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white text-xs font-semibold rounded transition whitespace-nowrap"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -904,13 +906,16 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
         <p className="text-center text-gray-500 mt-4">No hay usuarios</p>
       )}
 
-      {/* Paginado */}
-      {totalPaginas > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-4">
+      {/* Paginado estilo datatable */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-4 px-1">
+        <span className="text-sm text-gray-500">
+          Mostrando {usuariosFiltrados.length === 0 ? 0 : (paginaActual - 1) * USUARIOS_POR_PAGINA + 1}–{Math.min(paginaActual * USUARIOS_POR_PAGINA, usuariosFiltrados.length)} de {usuariosFiltrados.length} usuario(s)
+        </span>
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
             disabled={paginaActual === 1}
-            className="px-3 py-1 rounded border text-sm font-semibold disabled:opacity-40 hover:bg-gray-100 transition"
+            className="px-3 py-1.5 rounded border text-sm font-semibold disabled:opacity-40 hover:bg-gray-100 transition"
           >
             ← Anterior
           </button>
@@ -918,7 +923,7 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
             <button
               key={p}
               onClick={() => setPaginaActual(p)}
-              className={`px-3 py-1 rounded border text-sm font-semibold transition ${
+              className={`px-3 py-1.5 rounded border text-sm font-semibold transition ${
                 p === paginaActual ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-100'
               }`}
             >
@@ -928,12 +933,12 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
           <button
             onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
             disabled={paginaActual === totalPaginas}
-            className="px-3 py-1 rounded border text-sm font-semibold disabled:opacity-40 hover:bg-gray-100 transition"
+            className="px-3 py-1.5 rounded border text-sm font-semibold disabled:opacity-40 hover:bg-gray-100 transition"
           >
             Siguiente →
           </button>
         </div>
-      )}
+      </div>
       
       {usuarioEditar && (
         <ModalEditarUsuario
