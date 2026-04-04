@@ -1154,7 +1154,7 @@ if (keys.length > 0) {
       const response = await axios.post(`${apiBaseUrl}/crear-usuario/`, payload);
       console.log('✅ Respuesta del servidor:', response.data);
 
-      setSuccess(`✅ ${response.data.mensaje}`);
+      setSuccess(`✅ Usuario creado exitosamente`);
       await fetchUsuarios();
       setTimeout(() => {
         setSuccess(null);
