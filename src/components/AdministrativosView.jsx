@@ -739,11 +739,27 @@ const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, 
     } catch (err) {
       const d = err.response?.data;
       let msg = 'Error al actualizar usuario';
-      if (d?.error) msg = d.error;
-      else if (d?.email) msg = 'El correo electrónico ya está registrado';
-      else if (d?.detail) msg = d.detail;
+      if (d) {
+        if (typeof d === 'string') {
+          msg = d;
+        } else if (d.error) {
+          msg = d.error;
+        } else if (d.detail) {
+          msg = d.detail;
+        } else {
+          // Extraer todos los errores de campos
+          const campos = Object.entries(d)
+            .map(([campo, errores]) => {
+              const texto = Array.isArray(errores) ? errores.join(', ') : String(errores);
+              return `${campo}: ${texto}`;
+            })
+            .join(' | ');
+          if (campos) msg = campos;
+        }
+      }
+      console.error('Error editar usuario:', err.response?.status, d);
       setMensajeEdicion({ tipo: 'error', mensaje: msg });
-      setTimeout(() => setMensajeEdicion(null), 4000);
+      setTimeout(() => setMensajeEdicion(null), 6000);
     } finally {
       setEditando(false);
     }
