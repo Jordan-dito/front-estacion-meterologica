@@ -648,7 +648,7 @@ const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, u
       {stats && (
         <div className="grid md:grid-cols-1 gap-6">
 
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
+          <div className="bg-gradient-to-br from-sky-200 to-cyan-300 p-6 rounded-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Estadísticas</h3>
             <div className="space-y-4">
               <div className="flex justify-between bg-white p-3 rounded">
