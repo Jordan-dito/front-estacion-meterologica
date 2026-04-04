@@ -91,16 +91,24 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
           
           // Parseo de fecha
           let fecha = new Date().toISOString().slice(0, 10);
+          let fechaDisplay = fecha;
           if (r.timestamp) {
-            if (typeof r.timestamp === 'string') {
-              const partes = r.timestamp.split('/');
+            if (typeof r.timestamp === 'string' && r.timestamp.includes('/')) {
+              fechaDisplay = r.timestamp;
+              const soloFecha = r.timestamp.split(' ')[0];
+              const partes = soloFecha.split('/');
               if (partes.length === 3) {
-                const año = partes[0].length === 2 ? '20' + partes[0] : partes[0];
-                fecha = `${año}-${partes[1].padStart(2, '0')}-${partes[2].padStart(2, '0')}`;
+                let [año, mes, dia] = partes;
+                if (año.length === 2) año = '20' + año;
+                dia = dia.padStart(2, '0');
+                mes = mes.padStart(2, '0');
+                fecha = `${año}-${mes}-${dia}`;
               }
             } else if (typeof r.timestamp === 'number') {
               const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
-              fecha = new Date(ts * 1000).toISOString().slice(0, 10);
+              const dateObj = new Date(ts * 1000);
+              fecha = dateObj.toISOString().slice(0, 10);
+              fechaDisplay = dateObj.toLocaleString('es-ES');
             }
           }
 
@@ -108,6 +116,7 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
 
           return {
             date: fecha,
+            dateDisplay: fechaDisplay,
             temperatura: temp,
             radiacion_solar: uvIndex,
             humedad_suelo: humedadSuelo,
@@ -295,10 +304,13 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
       {/* TIEMPO REAL FIREBASE */}
       {ultimoFirebase && (
         <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-lg p-6 text-white">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
             <Database size={24} />
             🔥 Sensores en Tiempo Real
           </h3>
+          {ultimoFirebase.timestamp && (
+            <p className="text-sm text-white/80 mb-4">🕐 Última lectura: {ultimoFirebase.timestamp}</p>
+          )}
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
