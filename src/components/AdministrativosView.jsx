@@ -1719,38 +1719,32 @@ if (keys.length > 0) {
 
                 {/* INSIGHTS */}
                 <div className="grid md:grid-cols-3 gap-5">
-                  <div className="rounded-2xl p-6 border border-emerald-500/20 relative overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.1) 100%)' }}>
-                    <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
-                      style={{ background: '#10b981', filter: 'blur(40px)', transform: 'translate(30%, -30%)' }} />
-                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Top Cultivo</span>
+                  <div className="rounded-2xl p-6 border border-emerald-400 relative overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.85)' }}>
+                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">Top Cultivo</span>
                     <p className="text-4xl mt-3 mb-1">🌰</p>
-                    <p className="text-2xl font-extrabold text-white">Cacao</p>
-                    <p className="text-emerald-300 text-sm mt-1">{datosDashboardAdmin.viabilidadCultivos.cacao.porcentaje}% de días viables</p>
+                    <p className="text-2xl font-extrabold text-slate-800">Cacao</p>
+                    <p className="text-emerald-600 text-sm mt-1">{datosDashboardAdmin.viabilidadCultivos.cacao.porcentaje}% de días viables</p>
                   </div>
 
-                  <div className="rounded-2xl p-6 border border-amber-500/20 relative overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.1) 100%)' }}>
-                    <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
-                      style={{ background: '#f59e0b', filter: 'blur(40px)', transform: 'translate(30%, -30%)' }} />
-                    <span className="text-xs font-bold uppercase tracking-widest text-amber-400">Clima</span>
-                    <div className="mt-3 mb-1"><CloudRain size={28} className="text-amber-300" /></div>
-                    <p className="text-xl font-extrabold text-white leading-tight">
+                  <div className="rounded-2xl p-6 border border-amber-400 relative overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.85)' }}>
+                    <span className="text-xs font-bold uppercase tracking-widest text-amber-600">Clima</span>
+                    <div className="mt-3 mb-1"><CloudRain size={28} className="text-amber-500" /></div>
+                    <p className="text-xl font-extrabold text-slate-800 leading-tight">
                       {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).name}
                     </p>
-                    <p className="text-amber-300 text-sm mt-1">
+                    <p className="text-amber-600 text-sm mt-1">
                       {datosDashboardAdmin.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).porcentaje}% del período
                     </p>
                   </div>
 
-                  <div className="rounded-2xl p-6 border border-blue-500/20 relative overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(99,102,241,0.1) 100%)' }}>
-                    <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
-                      style={{ background: '#3b82f6', filter: 'blur(40px)', transform: 'translate(30%, -30%)' }} />
-                    <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Dataset</span>
-                    <div className="mt-3 mb-1"><Database size={28} className="text-blue-300" /></div>
-                    <p className="text-3xl font-extrabold text-white">{datosDashboardAdmin.totalDias.toLocaleString()}</p>
-                    <p className="text-blue-300 text-sm mt-1">registros procesados</p>
+                  <div className="rounded-2xl p-6 border border-blue-400 relative overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.85)' }}>
+                    <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Dataset</span>
+                    <div className="mt-3 mb-1"><Database size={28} className="text-blue-500" /></div>
+                    <p className="text-3xl font-extrabold text-slate-800">{datosDashboardAdmin.totalDias.toLocaleString()}</p>
+                    <p className="text-blue-600 text-sm mt-1">registros procesados</p>
                   </div>
                 </div>
               </>
