@@ -689,14 +689,29 @@ const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, u
 // ============================================================================
 // TABLA DE USUARIOS CON CÉDULA
 // ============================================================================
-const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, loadingCrear, errorCrear, successCrear }) => {
+const GestionUsuarios = ({ usuarios, filtroEstado, setFiltroEstado, apiBaseUrl, onRefresh, onCrearUsuario, loadingCrear, errorCrear, successCrear }) => {
   const [eliminando, setEliminando] = useState(false);
   const [mensajeEliminar, setMensajeEliminar] = useState(null);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [editando, setEditando] = useState(false);
   const [mensajeEdicion, setMensajeEdicion] = useState(null);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
-  const [confirmarEliminar, setConfirmarEliminar] = useState(null); // { id, nombre }
+  const [confirmarEliminar, setConfirmarEliminar] = useState(null);
+
+  const usuariosFiltrados = usuarios.filter(u => {
+    if (filtroEstado === 'activos') return u.is_active !== false;
+    if (filtroEstado === 'inactivos') return u.is_active === false;
+    return true;
+  });
+
+  const handleToggleActivo = async (usuario) => {
+    try {
+      await axios.post(`${apiBaseUrl}/toggle-activo/${usuario.id}/`);
+      if (onRefresh) await onRefresh();
+    } catch (err) {
+      console.error('Error al cambiar estado:', err);
+    }
+  };
 
   const handleCrearUsuario = async (formData) => {
     const resultado = await onCrearUsuario(formData);
@@ -782,6 +797,24 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
         </button>
       </div>
 
+      {/* Filtro activos/inactivos */}
+      <div className="flex gap-2 mb-4">
+        {['todos', 'activos', 'inactivos'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFiltroEstado(f)}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition ${
+              filtroEstado === f
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+            }`}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+        <span className="ml-2 text-sm text-gray-500 self-center">{usuariosFiltrados.length} usuario(s)</span>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead className="bg-gray-100">
@@ -791,12 +824,13 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nombre</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Cédula</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Rol</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Creado</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {usuarios.map((usuario) => (
+            {usuariosFiltrados.map((usuario) => (
               <tr key={usuario.id} className="hover:bg-gray-50 transition">
                 <td className="px-4 py-3 text-sm font-semibold text-gray-800">{usuario.username}</td>
                 <td className="px-4 py-3 text-sm text-gray-600">{usuario.email}</td>
@@ -819,15 +853,30 @@ const GestionUsuarios = ({ usuarios, apiBaseUrl, onRefresh, onCrearUsuario, load
                     {usuario.rol_display}
                   </span>
                 </td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                    usuario.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {usuario.is_active !== false ? 'Activo' : 'Inactivo'}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-sm text-gray-600">
                   {new Date(usuario.created_at).toLocaleDateString('es-ES')}
                 </td>
-                <td className="px-4 py-3 flex gap-2">
+                <td className="px-4 py-3 flex gap-2 flex-wrap">
                   <button
                     onClick={() => setUsuarioEditar(usuario)}
                     className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs font-semibold transition"
                   >
                     ✏️ Editar
+                  </button>
+                  <button
+                    onClick={() => handleToggleActivo(usuario)}
+                    className={`px-3 py-1 text-white text-xs font-semibold rounded transition ${
+                      usuario.is_active !== false ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-600 hover:bg-green-700'
+                    }`}
+                  >
+                    {usuario.is_active !== false ? '🔒 Desactivar' : '🔓 Activar'}
                   </button>
                   <button
                     onClick={() => handleEliminarUsuario(usuario.id, usuario.first_name || usuario.username)}
@@ -878,6 +927,7 @@ const AdministrativosView = ({ user, apiBaseUrl, onLogout }) => {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [usuarios, setUsuarios] = useState([]);
+  const [filtroEstado, setFiltroEstado] = useState('todos');
   
   // ⭐ Estados para datos COMBINADOS
   const [datos, setDatos] = useState([]);
@@ -1666,8 +1716,10 @@ if (keys.length > 0) {
       )}
       
       {activeTab === 'usuarios' && (
-        <GestionUsuarios 
+        <GestionUsuarios
           usuarios={usuarios}
+          filtroEstado={filtroEstado}
+          setFiltroEstado={setFiltroEstado}
           apiBaseUrl={apiBaseUrl}
           onRefresh={fetchUsuarios}
           onCrearUsuario={handleCrearUsuarioSubmit}
