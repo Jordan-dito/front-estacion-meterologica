@@ -497,6 +497,8 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
   }
 
 
+  const today = new Date().toISOString().split('T')[0];
+
   return (
     <div className="space-y-6">
       {/* HEADER */}
@@ -508,6 +510,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
               <label className="text-gray-700 font-medium text-sm">Filtrar por fecha:</label>
               <input
                 type="date"
+                max={today}
                 className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                 value={filtroInicio}
                 onChange={e => setFiltroInicio(e.target.value)}
@@ -515,6 +518,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
               <span className="text-gray-500">a</span>
               <input
                 type="date"
+                max={today}
                 className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                 value={filtroFin}
                 onChange={e => setFiltroFin(e.target.value)}
@@ -879,6 +883,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 <label className="text-gray-700 font-medium text-sm">Inicio:</label>
                 <input
                   type="date"
+                  max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroInicio}
                   onChange={e => { setFiltroInicio(e.target.value); setPaginaActual(1); }}
@@ -886,6 +891,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 <label className="text-gray-700 font-medium text-sm">Fin:</label>
                 <input
                   type="date"
+                  max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroFin}
                   onChange={e => { setFiltroFin(e.target.value); setPaginaActual(1); }}

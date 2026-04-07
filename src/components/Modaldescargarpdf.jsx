@@ -234,6 +234,8 @@ const normalizarFecha = (fechaStr) => {
   
   const fechaMinima = fechasNormalizadas[0] || '';
   const fechaMaxima = fechasNormalizadas[fechasNormalizadas.length - 1] || '';
+  const today = new Date().toISOString().split('T')[0];
+  const maxFecha = fechaMaxima && today < fechaMaxima ? today : (fechaMaxima || today);
 
   return (
     <>
@@ -276,7 +278,7 @@ const normalizarFecha = (fechaStr) => {
                     value={fechaInicio}
                     onChange={(e) => setFechaInicio(e.target.value)}
                     min={fechaMinima}
-                    max={fechaMaxima}
+                    max={maxFecha}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -288,7 +290,7 @@ const normalizarFecha = (fechaStr) => {
                     value={fechaFin}
                     onChange={(e) => setFechaFin(e.target.value)}
                     min={fechaMinima}
-                    max={fechaMaxima}
+                    max={maxFecha}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
