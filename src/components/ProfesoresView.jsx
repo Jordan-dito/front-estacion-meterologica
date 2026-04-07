@@ -87,64 +87,36 @@ const firebaseComoCSV = registros.map((r) => {
   const humedadSuelo = r.humedad_suelo || 0;
   const lluvia = r.lluvia < 0 ? 0 : r.lluvia || 0;
   const uvIndex = r.uvIndex || 0;
-  
-  // ⭐ VALORES POR DEFECTO
-  let fechaParaFiltro = new Date().toISOString().slice(0, 10);
-  let fechaParaMostrar = fechaParaFiltro; // Default
 
-  const dateFormatOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  };
-  
-  // ⭐ REVISAR SI EXISTE TIMESTAMP
-  console.log('RAW TIMESTAMP:', r.timestamp, typeof r.timestamp);
-  
+  let fechaParaFiltro = null;   // null = timestamp inválido, no pasa filtros de fecha
+  let fechaParaMostrar = 'Sin fecha';
+
   if (r.timestamp) {
     if (typeof r.timestamp === 'string' && r.timestamp.includes('/')) {
-      // Parsear "26/04/04 06:48" → fecha y hora completas
-      const [soloFecha, soloHora] = r.timestamp.split(' ');
+      // Formato del sensor: "26/04/07 09:52"
+      const [soloFecha, soloHora] = r.timestamp.trim().split(' ');
       const partes = soloFecha.split('/');
-
       if (partes.length === 3) {
         let [año, mes, dia] = partes;
         if (año.length === 2) año = '20' + año;
         dia = dia.padStart(2, '0');
         mes = mes.padStart(2, '0');
         fechaParaFiltro = `${año}-${mes}-${dia}`;
-        // Mostrar con formato consistente: dd/mm/yyyy, HH:mm:00
-        fechaParaMostrar = soloHora
-          ? `${dia}/${mes}/${año}, ${soloHora}:00`
-          : `${dia}/${mes}/${año}`;
+        fechaParaMostrar = soloHora ? `${dia}/${mes}/${año} ${soloHora}` : `${dia}/${mes}/${año}`;
       }
-    } else if (typeof r.timestamp === 'number') {
+    } else if (typeof r.timestamp === 'number' && r.timestamp > 0) {
       const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
       const dateObj = new Date(ts * 1000);
       fechaParaFiltro = dateObj.toISOString().slice(0, 10);
-      fechaParaMostrar = dateObj.toLocaleString('es-ES', dateFormatOptions);
-    } else {
-      // Si es string pero no tiene "/" — intentar parsear como fecha ISO
-      const parsedDate = new Date(r.timestamp);
-      if (!isNaN(parsedDate.getTime())) {
-        fechaParaFiltro = parsedDate.toISOString().slice(0, 10);
-        fechaParaMostrar = parsedDate.toLocaleString('es-ES', dateFormatOptions);
-      } else {
-        fechaParaMostrar = String(r.timestamp);
-      }
+      fechaParaMostrar = dateObj.toLocaleDateString('es-EC') + ' ' + dateObj.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
     }
   }
-  
-  console.log('RESULTADO:', fechaParaFiltro, '|', fechaParaMostrar);
 
   const viabilidad = calcularViabilidad(temp, humedad, lluvia);
 
   return {
     date: fechaParaFiltro,
-    dateDisplay: fechaParaMostrar, // ⭐ DEBE TENER LA HORA
+    dateDisplay: fechaParaMostrar,
     temperatura: temp,
     radiacion_solar: uvIndex,
     humedad_suelo: humedadSuelo,
