@@ -10,6 +10,7 @@ import Papa from 'papaparse';
 // URL DE FIREBASE
 // ============================================================================
 const FIREBASE_URL = "https://bdclimatico-cdb27-default-rtdb.firebaseio.com/sensores.json";
+const today = new Date().toISOString().split('T')[0];
 
 const ProfesoresView = ({ user, apiBaseUrl, onLogout }) => {
   const [activeTab, setActiveTab] = useState('datos');
@@ -510,6 +511,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 type="date"
                 className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                 value={filtroInicio}
+                max={today}
                 onChange={e => setFiltroInicio(e.target.value)}
               />
               <span className="text-gray-500">a</span>
@@ -517,6 +519,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 type="date"
                 className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                 value={filtroFin}
+                max={today}
                 onChange={e => setFiltroFin(e.target.value)}
               />
               <button
@@ -881,6 +884,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   type="date"
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroInicio}
+                  max={today}
                   onChange={e => { setFiltroInicio(e.target.value); setPaginaActual(1); }}
                 />
                 <label className="text-gray-700 font-medium text-sm">Fin:</label>
@@ -888,6 +892,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   type="date"
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroFin}
+                  max={today}
                   onChange={e => { setFiltroFin(e.target.value); setPaginaActual(1); }}
                 />
                 <button

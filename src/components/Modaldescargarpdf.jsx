@@ -3,6 +3,8 @@ import { X, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const today = new Date().toISOString().split('T')[0];
+
 const ModalDescargarPDF = ({ isOpen, onClose, datos }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
@@ -276,7 +278,7 @@ const normalizarFecha = (fechaStr) => {
                     value={fechaInicio}
                     onChange={(e) => setFechaInicio(e.target.value)}
                     min={fechaMinima}
-                    max={fechaMaxima}
+                    max={today}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -288,7 +290,7 @@ const normalizarFecha = (fechaStr) => {
                     value={fechaFin}
                     onChange={(e) => setFechaFin(e.target.value)}
                     min={fechaMinima}
-                    max={fechaMaxima}
+                    max={today}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
