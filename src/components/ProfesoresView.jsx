@@ -513,6 +513,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 max={today}
                 className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                 value={filtroInicio}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={e => setFiltroInicio(e.target.value)}
               />
               <span className="text-gray-500">a</span>
@@ -521,6 +522,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 max={today}
                 className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                 value={filtroFin}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={e => setFiltroFin(e.target.value)}
               />
               <button
@@ -886,6 +888,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroInicio}
+                  max={new Date().toISOString().split('T')[0]}
                   onChange={e => { setFiltroInicio(e.target.value); setPaginaActual(1); }}
                 />
                 <label className="text-gray-700 font-medium text-sm">Fin:</label>
@@ -894,6 +897,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroFin}
+                  max={new Date().toISOString().split('T')[0]}
                   onChange={e => { setFiltroFin(e.target.value); setPaginaActual(1); }}
                 />
                 <button
