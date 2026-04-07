@@ -83,11 +83,11 @@ const ModalOlvideContrasena = ({ isOpen, onClose, apiBaseUrl = 'https://dancar.p
                 ¡Revisa tu correo!
               </h3>
               <p className="text-gray-600 mb-4">
-                Si el email está registrado, recibirás instrucciones para restablecer tu contraseña.
+                Si tu correo está registrado, recibirás instrucciones para restablecer tu contraseña. Si usas Gmail, el mensaje puede tardar unos minutos en aparecer.
               </p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-                <p className="font-medium">📧 Revisa tu bandeja de entrada</p>
-                <p className="text-xs mt-1">Si no lo encuentras, revisa spam.</p>
+                <p className="font-medium">📧 Gmail y otros correos</p>
+                <p className="text-xs mt-1">En Gmail revisa Recibidos, Spam y la pestaña Promociones. En otros proveedores, revisa también la carpeta de correo no deseado.</p>
               </div>
               <button
                 onClick={handleClose}
@@ -99,7 +99,7 @@ const ModalOlvideContrasena = ({ isOpen, onClose, apiBaseUrl = 'https://dancar.p
           ) : (
             <form onSubmit={handleSubmit}>
               <p className="text-gray-600 mb-4">
-                Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                Ingresa tu correo (Gmail u otro) y te enviaremos un enlace para restablecer tu contraseña.
               </p>
 
               <div className="mb-4">
@@ -112,7 +112,7 @@ const ModalOlvideContrasena = ({ isOpen, onClose, apiBaseUrl = 'https://dancar.p
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tu.correo@ejemplo.com"
+                    placeholder="tu.correo@gmail.com"
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                     disabled={loading}
                     required
