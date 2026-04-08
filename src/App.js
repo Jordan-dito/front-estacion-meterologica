@@ -43,7 +43,7 @@ const App = () => {
     const token = urlParams.get('token');
     const path = window.location.pathname;
     
-    if (path === '/reset-password' && token) {
+    if (token) {
       setResetToken(token);
       setLoading(false);
     } else {
