@@ -920,7 +920,11 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 </tr>
                 {datosFiltrados
                   .slice()
-                  .sort((a, b) => ordenFechaAsc ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date))
+                  .sort((a, b) => {
+                    const dateA = a.date || '';
+                    const dateB = b.date || '';
+                    return ordenFechaAsc ? dateA.localeCompare(dateB) : dateB.localeCompare(dateA);
+                  })
                   .slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina)
                   .map((d, idx) => {
                     const viables = [
