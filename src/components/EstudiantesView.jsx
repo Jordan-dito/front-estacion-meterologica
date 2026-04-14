@@ -91,16 +91,21 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
           
           // Parseo de fecha
           let fecha = new Date().toISOString().slice(0, 10);
+          let dateSortValue = 0;
           if (r.timestamp) {
             if (typeof r.timestamp === 'string') {
-              const partes = r.timestamp.split('/');
+              const [soloFecha, soloHora] = r.timestamp.trim().split(' ');
+              const partes = soloFecha.split('/');
               if (partes.length === 3) {
                 const año = partes[0].length === 2 ? '20' + partes[0] : partes[0];
                 fecha = `${año}-${partes[1].padStart(2, '0')}-${partes[2].padStart(2, '0')}`;
+                const sortStr = soloHora ? `${año}-${partes[1].padStart(2, '0')}-${partes[2].padStart(2, '0')}T${soloHora}:00` : `${fecha}T00:00:00`;
+                dateSortValue = new Date(sortStr).getTime() || 0;
               }
             } else if (typeof r.timestamp === 'number') {
               const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
               fecha = new Date(ts * 1000).toISOString().slice(0, 10);
+              dateSortValue = ts * 1000;
             }
           }
 
@@ -108,6 +113,7 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
 
           return {
             date: fecha,
+            dateSort: dateSortValue,
             temperatura: temp,
             radiacion_solar: uvIndex,
             humedad_suelo: humedadSuelo,
@@ -147,6 +153,7 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
         complete: (results) => {
           const datosParseados = results.data.map((row) => ({
             date: row.date || '',
+            dateSort: row.date ? new Date(row.date).getTime() || 0 : 0,
             temperatura: parseFloat(row.Temperatura) || 0,
             radiacion_solar: parseFloat(row.RadiacionsolarpromediokWm2) || 0,
             humedad_suelo: parseFloat(row.HumedadSuelo) || 0,
@@ -183,7 +190,7 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
     const fechasCSV = new Set(datosCSV.map(d => d.date));
     const firebaseNuevos = datosFirebaseArray.filter(d => !fechasCSV.has(d.date));
     const combinados = [...datosCSV, ...firebaseNuevos];
-    combinados.sort((a, b) => new Date(a.date) - new Date(b.date));
+    combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
     setDatos(combinados);
   }, [datosCSV, datosFirebaseArray]);
 

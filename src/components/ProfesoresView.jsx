@@ -90,6 +90,7 @@ const firebaseComoCSV = registros.map((r) => {
 
   let fechaParaFiltro = null;   // null = timestamp inválido, no pasa filtros de fecha
   let fechaParaMostrar = 'Sin fecha';
+  let dateSortValue = 0;
 
   if (r.timestamp) {
     if (typeof r.timestamp === 'string' && r.timestamp.includes('/')) {
@@ -103,12 +104,15 @@ const firebaseComoCSV = registros.map((r) => {
         mes = mes.padStart(2, '0');
         fechaParaFiltro = `${año}-${mes}-${dia}`;
         fechaParaMostrar = soloHora ? `${dia}/${mes}/${año} ${soloHora}` : `${dia}/${mes}/${año}`;
+        const sortStr = soloHora ? `${año}-${mes}-${dia}T${soloHora}:00` : `${año}-${mes}-${dia}T00:00:00`;
+        dateSortValue = new Date(sortStr).getTime() || 0;
       }
     } else if (typeof r.timestamp === 'number' && r.timestamp > 0) {
       const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
       const dateObj = new Date(ts * 1000);
       fechaParaFiltro = dateObj.toISOString().slice(0, 10);
       fechaParaMostrar = dateObj.toLocaleDateString('es-EC') + ' ' + dateObj.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+      dateSortValue = ts * 1000;
     }
   }
 
@@ -117,6 +121,7 @@ const firebaseComoCSV = registros.map((r) => {
   return {
     date: fechaParaFiltro,
     dateDisplay: fechaParaMostrar,
+    dateSort: dateSortValue,
     temperatura: temp,
     radiacion_solar: uvIndex,
     humedad_suelo: humedadSuelo,
@@ -159,6 +164,7 @@ const firebaseComoCSV = registros.map((r) => {
           const datosParseados = results.data.map((row) => ({
             date: row.date || '',
             dateDisplay: row.date || '',
+            dateSort: row.date ? new Date(row.date).getTime() || 0 : 0,
             temperatura: parseFloat(row.Temperatura) || 0,
             radiacion_solar: (parseFloat(row.RadiacionsolarpromediokWm2) || 0),
             humedad_suelo: parseFloat(row.HumedadSuelo) || 0,
@@ -202,8 +208,8 @@ useEffect(() => {
   // ⭐ NO FILTRAR - COMBINAR TODO
   const combinados = [...csvConDisplay, ...datosFirebaseArray];
   
-  // Ordenar por fecha
-  combinados.sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Ordenar por fecha y hora
+  combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
   
   setDatos(combinados);
 }, [datosCSV, datosFirebaseArray]);
@@ -921,9 +927,9 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 {datosFiltrados
                   .slice()
                   .sort((a, b) => {
-                    const dateA = a.date || '';
-                    const dateB = b.date || '';
-                    return ordenFechaAsc ? dateA.localeCompare(dateB) : dateB.localeCompare(dateA);
+                    const dateA = a.dateSort || 0;
+                    const dateB = b.dateSort || 0;
+                    return ordenFechaAsc ? dateA - dateB : dateB - dateA;
                   })
                   .slice((paginaActual - 1) * registrosPorPagina, paginaActual * registrosPorPagina)
                   .map((d, idx) => {
