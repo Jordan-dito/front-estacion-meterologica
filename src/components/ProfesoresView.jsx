@@ -539,8 +539,8 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
         </div>
       </div>
 
-      {/* DASHBOARD RESUMEN - Gráficas debajo de los filtros */}
-      {datosDashboardResumen && (
+      {/* TAB: GRÁFICOS */}
+      {activeTab === 'graficos' && datosDashboardResumen && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-gray-800 text-center">
@@ -835,7 +835,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       {/* TABS */}
       <div className="bg-white rounded-xl shadow-lg p-4">
         <div className="flex gap-2 border-b overflow-x-auto">
-          {['datos', 'predictor'].map((tab) => (
+          {['datos', 'graficos', 'predictor'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -846,6 +846,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
               }`}
             >
               {tab === 'datos' && '📋 Datos'}
+              {tab === 'graficos' && '📊 Gráficos'}
               {tab === 'predictor' && '🌾 Predictor'}
             </button>
           ))}
