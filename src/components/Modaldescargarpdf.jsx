@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { fechaISOparaFiltro } from '../utils/sensorDates';
 
 const ModalDescargarPDF = ({ isOpen, onClose, datos }) => {
   const [fechaInicio, setFechaInicio] = useState('');
@@ -51,13 +52,8 @@ const normalizarFecha = (fechaStr) => {
     console.log('🔍 Filtrando desde:', inicio, 'hasta:', fin);
     
     const datosFiltrados = datos.filter((d) => {
-      const fechaNormalizada = normalizarFecha(d.date);
-      
-      if (!fechaNormalizada) {
-        return false;
-      }
-      
-      // Comparar solo la parte de la fecha (YYYY-MM-DD)
+      const fechaNormalizada = fechaISOparaFiltro(d) || normalizarFecha(String(d.date ?? ''));
+      if (!fechaNormalizada) return false;
       return fechaNormalizada >= inicio && fechaNormalizada <= fin;
     });
     
@@ -163,7 +159,7 @@ const normalizarFecha = (fechaStr) => {
         ].filter(Boolean).join(', ');
 
         return [
-          d.date, // ⭐ Mantiene la fecha original con hora para mostrar en PDF
+          d.dateDisplay || d.date || '—',
           typeof d.temperatura === 'number' ? d.temperatura.toFixed(1) : d.temperatura,
           d.humedad,
           typeof d.radiacion_solar === 'number' ? Math.round(d.radiacion_solar) : d.radiacion_solar,
@@ -228,7 +224,7 @@ const normalizarFecha = (fechaStr) => {
 
   // ⭐ Calcular rango de fechas disponibles
   const fechasNormalizadas = datos
-    .map(d => normalizarFecha(d.date))
+    .map(d => fechaISOparaFiltro(d) || normalizarFecha(String(d.date ?? '')))
     .filter(f => f !== null)
     .sort();
   
