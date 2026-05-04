@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BarChart3, RefreshCw, Thermometer, Droplets, Wind, Sun, Activity, CloudRain, Database, Download } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PredictorCultivos from './PredictorCultivos';
@@ -22,6 +22,19 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
   const [ultimoFirebase, setUltimoFirebase] = useState(null);
   const [loadingFirebase, setLoadingFirebase] = useState(false);
   const [errorFirebase, setErrorFirebase] = useState(null);
+
+  const [filtroInicio, setFiltroInicio] = useState('');
+  const [filtroFin, setFiltroFin] = useState('');
+
+  const datosFiltrados = useMemo(() => {
+    if (!filtroInicio && !filtroFin) return datos;
+    return datos.filter((d) => {
+      if (!d.date) return false;
+      if (filtroInicio && d.date < filtroInicio) return false;
+      if (filtroFin && d.date > filtroFin) return false;
+      return true;
+    });
+  }, [datos, filtroInicio, filtroFin]);
 
   // ========================================================================
   // FUNCIÓN PARA CALCULAR VIABILIDAD DE CULTIVOS
@@ -207,15 +220,16 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
   // ========================================================================
   // ESTADÍSTICAS
   // ========================================================================
-  const ultimoRegistro = datos.length > 0 ? datos[datos.length - 1] : null;
+  const ultimoRegistro =
+    datosFiltrados.length > 0 ? datosFiltrados[datosFiltrados.length - 1] : null;
 
   const calcularEstadisticas = () => {
-    if (datos.length === 0) return null;
+    if (datosFiltrados.length === 0) return null;
 
-    const temps = datos.map((d) => d.temperatura);
-    const humeds = datos.map((d) => d.humedad);
-    const radiaciones = datos.map((d) => d.radiacion_solar);
-    const precips = datos.map((d) => d.precipitacion);
+    const temps = datosFiltrados.map((d) => d.temperatura);
+    const humeds = datosFiltrados.map((d) => d.humedad);
+    const radiaciones = datosFiltrados.map((d) => d.radiacion_solar);
+    const precips = datosFiltrados.map((d) => d.precipitacion);
 
     const average = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
 
@@ -263,11 +277,37 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             <BarChart3 className="text-green-600" size={28} />
             📊 Datos Meteorológicos
           </h2>
+          <div className="flex flex-wrap items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+            <label className="text-gray-700 text-sm font-medium">Filtrar por fecha:</label>
+            <input
+              type="date"
+              value={filtroInicio}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setFiltroInicio(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            />
+            <span className="text-gray-500 text-sm">a</span>
+            <input
+              type="date"
+              value={filtroFin}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setFiltroFin(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => { setFiltroInicio(''); setFiltroFin(''); }}
+              disabled={!filtroInicio && !filtroFin}
+              className="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs disabled:opacity-50"
+            >
+              Limpiar
+            </button>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={fetchFirebase}
