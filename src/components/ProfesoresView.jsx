@@ -5,6 +5,7 @@ import PredictorCultivos from './PredictorCultivos';
 import ModalDescargarPDF from './Modaldescargarpdf';
 // import AnalisisKMeans from './AnalisisKMeans';
 import Papa from 'papaparse';
+import { parseFirebaseTimestamp } from '../utils/sensorDates';
 
 // ============================================================================
 // URL DE FIREBASE
@@ -88,33 +89,10 @@ const firebaseComoCSV = registros.map((r) => {
   const lluvia = r.lluvia < 0 ? 0 : r.lluvia || 0;
   const uvIndex = r.uvIndex || 0;
 
-  let fechaParaFiltro = null;   // null = timestamp inválido, no pasa filtros de fecha
-  let fechaParaMostrar = 'Sin fecha';
-  let dateSortValue = 0;
-
-  if (r.timestamp) {
-    if (typeof r.timestamp === 'string' && r.timestamp.includes('/')) {
-      // Formato del sensor: "26/04/07 09:52"
-      const [soloFecha, soloHora] = r.timestamp.trim().split(' ');
-      const partes = soloFecha.split('/');
-      if (partes.length === 3) {
-        let [año, mes, dia] = partes;
-        if (año.length === 2) año = '20' + año;
-        dia = dia.padStart(2, '0');
-        mes = mes.padStart(2, '0');
-        fechaParaFiltro = `${año}-${mes}-${dia}`;
-        fechaParaMostrar = soloHora ? `${dia}/${mes}/${año} ${soloHora}` : `${dia}/${mes}/${año}`;
-        const sortStr = soloHora ? `${año}-${mes}-${dia}T${soloHora}:00` : `${año}-${mes}-${dia}T00:00:00`;
-        dateSortValue = new Date(sortStr).getTime() || 0;
-      }
-    } else if (typeof r.timestamp === 'number' && r.timestamp > 0) {
-      const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
-      const dateObj = new Date(ts * 1000);
-      fechaParaFiltro = dateObj.toISOString().slice(0, 10);
-      fechaParaMostrar = dateObj.toLocaleDateString('es-EC') + ' ' + dateObj.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-      dateSortValue = ts * 1000;
-    }
-  }
+  const parsed = parseFirebaseTimestamp(r.timestamp);
+  const fechaParaFiltro = parsed.isoDate;
+  const fechaParaMostrar = parsed.dateDisplay;
+  const dateSortValue = parsed.sortMs;
 
   const viabilidad = calcularViabilidad(temp, humedad, lluvia);
 
@@ -196,21 +174,17 @@ const firebaseComoCSV = registros.map((r) => {
   }, []);
 
 // ========================================================================
-// ⭐ COMBINAR CSV + FIREBASE (SIN FILTRAR)
+// ⭐ COMBINAR CSV + FIREBASE (misma regla que administración: sin duplicar por fecha)
 // ========================================================================
 useEffect(() => {
-  // Agregar dateDisplay al CSV si no tiene
-  const csvConDisplay = datosCSV.map(d => ({
+  const csvConDisplay = datosCSV.map((d) => ({
     ...d,
-    dateDisplay: d.date // CSV solo tiene fecha
+    dateDisplay: d.date || d.dateDisplay,
   }));
-
-  // ⭐ NO FILTRAR - COMBINAR TODO
-  const combinados = [...csvConDisplay, ...datosFirebaseArray];
-  
-  // Ordenar por fecha y hora
+  const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
+  const firebaseNuevos = datosFirebaseArray.filter((d) => d.date && !fechasCSV.has(d.date));
+  const combinados = [...csvConDisplay, ...firebaseNuevos];
   combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
-  
   setDatos(combinados);
 }, [datosCSV, datosFirebaseArray]);
 
@@ -295,21 +269,6 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
 
 
 
-  // ========================================================================
-  // CONTEO DE CULTIVOS VIABLES
-  // ========================================================================
-  const contarCultivosViables = () => {
-    return {
-      tomate: datos.filter(d => d.tomate === 'Sí').length,
-      banana: datos.filter(d => d.banana === 'Sí').length,
-      cacao: datos.filter(d => d.cacao === 'Sí').length,
-      arroz: datos.filter(d => d.arroz === 'Sí').length,
-      maiz: datos.filter(d => d.maiz === 'Sí').length,
-    };
-  };
-
-  const cultivosViables = contarCultivosViables();
-
   const COLORS = ['#ef4444', '#f59e0b', '#8B4513', '#22c55e', '#eab308'];
 
   // ========================================================================
@@ -336,7 +295,15 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
     if (datosFiltrados.length === 0) return null;
 
     const totalDias = datosFiltrados.length;
-    
+
+    const cultivosViables = {
+      tomate: datosFiltrados.filter((d) => d.tomate === 'Sí').length,
+      banana: datosFiltrados.filter((d) => d.banana === 'Sí').length,
+      cacao: datosFiltrados.filter((d) => d.cacao === 'Sí').length,
+      arroz: datosFiltrados.filter((d) => d.arroz === 'Sí').length,
+      maiz: datosFiltrados.filter((d) => d.maiz === 'Sí').length,
+    };
+
     const viabilidadCultivos = {
       tomate: { dias: cultivosViables.tomate, porcentaje: ((cultivosViables.tomate / totalDias) * 100).toFixed(1) },
       banana: { dias: cultivosViables.banana, porcentaje: ((cultivosViables.banana / totalDias) * 100).toFixed(1) },
@@ -344,6 +311,20 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       arroz: { dias: cultivosViables.arroz, porcentaje: ((cultivosViables.arroz / totalDias) * 100).toFixed(1) },
       maiz: { dias: cultivosViables.maiz, porcentaje: ((cultivosViables.maiz / totalDias) * 100).toFixed(1) },
     };
+
+    const fechasOrd = datosFiltrados.map((d) => d.date).filter(Boolean).sort();
+    const periodoDataset =
+      fechasOrd.length > 0 ? `${fechasOrd[0]} → ${fechasOrd[fechasOrd.length - 1]}` : '';
+    const años = [
+      ...new Set(
+        datosFiltrados
+          .map((d) => (d.date ? new Date(d.date + 'T12:00:00').getFullYear() : null))
+          .filter((y) => y != null && !Number.isNaN(y))
+      ),
+    ].sort((a, b) => a - b);
+    let etiquetaAñosEnTendencia = '';
+    if (años.length === 1) etiquetaAñosEnTendencia = ` (${años[0]})`;
+    else if (años.length > 1) etiquetaAñosEnTendencia = ` (${años[0]}–${años[años.length - 1]})`;
 
     const datosViabilidadPie = [
       { name: 'Tomate', value: parseFloat(viabilidadCultivos.tomate.porcentaje), color: '#ef4444' },
@@ -421,9 +402,11 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
       datosBarra,
       datosPerfilClimatico,
       tendenciaMensual,
-      mejorMesPorCultivo
+      mejorMesPorCultivo,
+      periodoDataset,
+      etiquetaAñosEnTendencia,
     };
-  }, [datos, cultivosViables]);
+  }, [datosFiltrados]);
 
   // ========================================================================
   // PAGINACIÓN
@@ -799,38 +782,48 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
               📊 DASHBOARD: Análisis de Viabilidad de Cultivos
             </h2>
             <p className="text-center text-gray-500 mt-2">
-              Análisis completo de {datosDashboardResumen.totalDias} días de datos
+              {datosDashboardResumen.totalDias} registros
+              {datosDashboardResumen.periodoDataset
+                ? ` · Periodo: ${datosDashboardResumen.periodoDataset}`
+                : ''}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Viabilidad Promedio General (%)
+                Viabilidad promedio por cultivo (%)
               </h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                   <Pie
                     data={datosDashboardResumen.datosViabilidadPie}
                     cx="50%"
                     cy="50%"
-                    labelLine={true}
-                    label={({ name, value }) => `${name} ${value}%`}
-                    outerRadius={90}
+                    labelLine={false}
+                    label={false}
+                    outerRadius={72}
                     dataKey="value"
                   >
                     {datosDashboardResumen.datosViabilidadPie.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
+                  <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                  <Legend
+                    formatter={(value, entry) =>
+                      entry?.payload != null
+                        ? `${entry.payload.name}: ${entry.payload.value}%`
+                        : value
+                    }
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Total de Datos Viables
+                Días viables por cultivo
               </h3>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={datosDashboardResumen.datosBarra}>
@@ -849,17 +842,17 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
 
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Distribución de Perfiles Climáticos
+                Distribución de perfiles climáticos
               </h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                   <Pie
                     data={datosDashboardResumen.datosPerfilClimatico}
                     cx="50%"
                     cy="50%"
-                    labelLine={true}
-                    label={({ porcentaje }) => `${porcentaje}%`}
-                    outerRadius={90}
+                    labelLine={false}
+                    label={false}
+                    outerRadius={72}
                     dataKey="value"
                   >
                     {datosDashboardResumen.datosPerfilClimatico.map((entry, index) => (
@@ -876,8 +869,13 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Tendencia de Viabilidad
+                Tendencia mensual de viabilidad (%){datosDashboardResumen.etiquetaAñosEnTendencia || ''}
               </h3>
+              <p className="text-center text-xs text-gray-500 mb-2">
+                {datosDashboardResumen.periodoDataset
+                  ? `Datos comprendidos entre ${datosDashboardResumen.periodoDataset}`
+                  : ''}
+              </p>
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={datosDashboardResumen.tendenciaMensual}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -966,7 +964,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 </p>
               </div>
               <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                <p className="text-sm opacity-90">Total datos analizados</p>
+                <p className="text-sm opacity-90">Registros en el análisis</p>
                 <p className="text-2xl font-bold">{datosDashboardResumen.totalDias}</p>
                 <p className="text-sm">registros procesados</p>
               </div>
