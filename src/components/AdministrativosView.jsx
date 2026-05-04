@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import PredictorCultivos from './PredictorCultivos';
 import AnalisisKMeans from './AnalisisKMeans';
+import { parseFirebaseTimestamp } from '../utils/sensorDates';
 
 // ============================================================================
 // URL DE FIREBASE
@@ -175,9 +176,15 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (form.cedula) {
-      const { valida, mensaje } = validarCedulaEcuatoriana(form.cedula);
-      if (!valida) { setCedulaAlerta(mensaje); return; }
+    if (!form.nombre?.trim() || !form.email?.trim()) {
+      alert('Nombre y correo son obligatorios');
+      return;
+    }
+
+    const cedulaRes = validarCedulaEcuatoriana(form.cedula);
+    if (!cedulaRes.valida) {
+      setCedulaAlerta(cedulaRes.mensaje);
+      return;
     }
 
     if (form.password !== form.password_confirm) {
@@ -248,7 +255,7 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
           {/* Cédula */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Cédula de Identidad (Opcional)
+              Cédula de Identidad
             </label>
             <input
               type="text"
@@ -264,6 +271,7 @@ const ModalCrearUsuario = ({ onClose, onCreate, loading, error, success }) => {
               placeholder="1234567890"
               maxLength={10}
               inputMode="numeric"
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -524,7 +532,7 @@ const CrearUsuarioTab = ({ formData, handleInputChange, handleSubmit, loading, e
 <input
   type="text"
   name="cedula"
-  placeholder="Cédula de Identidad (Opcional)"
+  placeholder="Cédula de Identidad (10 dígitos)"
   value={formData.cedula}
   onChange={handleInputChange}
   onBlur={() => {
@@ -540,6 +548,7 @@ const CrearUsuarioTab = ({ formData, handleInputChange, handleSubmit, loading, e
   maxLength={10}
   inputMode="numeric"
   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+  required
 />
         <input
           type="password"
@@ -1013,6 +1022,8 @@ const AdministrativosView = ({ user, apiBaseUrl, onLogout }) => {
 
   const [filtroInicioAdmin, setFiltroInicioAdmin] = useState('');
   const [filtroFinAdmin, setFiltroFinAdmin] = useState('');
+  const [filtroDashDesde, setFiltroDashDesde] = useState('');
+  const [filtroDashHasta, setFiltroDashHasta] = useState('');
 
 const handlePrediccionesActualizadas = useCallback((predicciones) => {
   if (predicciones && predicciones.length > 0) {
@@ -1098,33 +1109,15 @@ if (keys.length > 0) {
           const humedadSuelo = r.humedad_suelo || 0;
           const lluvia = r.lluvia < 0 ? 0 : r.lluvia || 0;
           const uvIndex = r.uvIndex || 0;
-          
-          // ⭐ PARSEAR TIMESTAMP - puede ser número o string "YY/MM/DD HH:MM"
-          let fecha = new Date().toISOString().slice(0, 10);
-          let dateSortValue = 0;
-          if (r.timestamp) {
-            if (typeof r.timestamp === 'string') {
-              const [soloFecha, soloHora] = r.timestamp.trim().split(' ');
-              const partes = soloFecha.split('/');
-              if (partes.length === 3) {
-                const año = partes[0].length === 2 ? '20' + partes[0] : partes[0];
-                fecha = `${año}-${partes[1].padStart(2, '0')}-${partes[2].padStart(2, '0')}`;
-                const sortStr = soloHora ? `${año}-${partes[1].padStart(2, '0')}-${partes[2].padStart(2, '0')}T${soloHora}:00` : `${fecha}T00:00:00`;
-                dateSortValue = new Date(sortStr).getTime() || 0;
-              }
-            } else if (typeof r.timestamp === 'number') {
-              const ts = r.timestamp > 10000000000 ? r.timestamp / 1000 : r.timestamp;
-              fecha = new Date(ts * 1000).toISOString().slice(0, 10);
-              dateSortValue = ts * 1000;
-            }
-          }
 
+          const parsed = parseFirebaseTimestamp(r.timestamp);
 
           const viabilidad = calcularViabilidad(temp, humedad, lluvia/10);
 
           return {
-            date: fecha,
-            dateSort: dateSortValue,
+            date: parsed.isoDate,
+            dateDisplay: parsed.dateDisplay,
+            dateSort: parsed.sortMs,
             temperatura: temp,
             radiacion_solar:uvIndex,
             humedad_suelo: humedadSuelo,
@@ -1174,6 +1167,7 @@ if (keys.length > 0) {
         complete: (results) => {
           const datosParseados = results.data.map((row) => ({
             date: row.date || '',
+            dateDisplay: row.date || '',
             dateSort: row.date ? new Date(row.date).getTime() || 0 : 0,
             temperatura: parseFloat(row.Temperatura) || 0,
             radiacion_solar: (parseFloat(row.RadiacionsolarpromediokWm2) || 0),
@@ -1234,17 +1228,15 @@ if (keys.length > 0) {
     setError(null);
     setSuccess(null);
 
-    if (!formData.nombre || !formData.email || !formData.password) {
-      setError('Todos los campos son requeridos');
+    if (!formData.nombre?.trim() || !formData.email?.trim() || !formData.password) {
+      setError('Nombre, correo y contraseña son obligatorios');
       return { success: false };
     }
 
-    if (formData.cedula) {
-      const { valida, mensaje } = validarCedulaEcuatoriana(formData.cedula);
-      if (!valida) {
-        setError(mensaje);
-        return { success: false };
-      }
+    const cedulaCheck = validarCedulaEcuatoriana(formData.cedula);
+    if (!cedulaCheck.valida) {
+      setError(cedulaCheck.mensaje);
+      return { success: false };
     }
 
     if (formData.password !== formData.password_confirm) {
@@ -1344,8 +1336,6 @@ if (keys.length > 0) {
     };
   };
 
-  const stats = calcularStats();
-
   const datosFiltradosAdmin = useMemo(() => {
     return datos.filter(d => {
       if (filtroInicioAdmin && d.date < filtroInicioAdmin) return false;
@@ -1353,6 +1343,21 @@ if (keys.length > 0) {
       return true;
     });
   }, [datos, filtroInicioAdmin, filtroFinAdmin]);
+
+  const datosFiltradosDashboard = useMemo(() => {
+    return datos.filter((d) => {
+      if (filtroDashDesde && d.date && d.date < filtroDashDesde) return false;
+      if (filtroDashHasta && d.date && d.date > filtroDashHasta) return false;
+      return true;
+    });
+  }, [datos, filtroDashDesde, filtroDashHasta]);
+
+  const stats = calcularStats();
+  const statsDashboard = calcularStats(datosFiltradosDashboard);
+  const ultimoRegistroDashboard =
+    datosFiltradosDashboard.length > 0
+      ? datosFiltradosDashboard[datosFiltradosDashboard.length - 1]
+      : null;
 
   const statsAdmin = calcularStats(datosFiltradosAdmin);
 
@@ -1378,14 +1383,14 @@ if (keys.length > 0) {
   };
 
   const datosDashboardAdmin = useMemo(() => {
-    if (datosFiltradosAdmin.length === 0) return null;
-    const totalDias = datosFiltradosAdmin.length;
+    if (datosFiltradosDashboard.length === 0) return null;
+    const totalDias = datosFiltradosDashboard.length;
     const cultivosViables = {
-      tomate: datosFiltradosAdmin.filter(d => d.tomate === 'Sí').length,
-      banana: datosFiltradosAdmin.filter(d => d.banana === 'Sí').length,
-      cacao: datosFiltradosAdmin.filter(d => d.cacao === 'Sí').length,
-      arroz: datosFiltradosAdmin.filter(d => d.arroz === 'Sí').length,
-      maiz: datosFiltradosAdmin.filter(d => d.maiz === 'Sí').length,
+      tomate: datosFiltradosDashboard.filter(d => d.tomate === 'Sí').length,
+      banana: datosFiltradosDashboard.filter(d => d.banana === 'Sí').length,
+      cacao: datosFiltradosDashboard.filter(d => d.cacao === 'Sí').length,
+      arroz: datosFiltradosDashboard.filter(d => d.arroz === 'Sí').length,
+      maiz: datosFiltradosDashboard.filter(d => d.maiz === 'Sí').length,
     };
     const viabilidadCultivos = {
       tomate: { porcentaje: ((cultivosViables.tomate / totalDias) * 100).toFixed(1) },
@@ -1409,7 +1414,7 @@ if (keys.length > 0) {
       { cultivo: 'Maíz',   dias: cultivosViables.maiz,   color: '#eab308' },
     ];
     let condicionesSecas = 0, condicionesModeradas = 0, excesoLluvias = 0;
-    datosFiltradosAdmin.forEach(d => {
+    datosFiltradosDashboard.forEach(d => {
       if (d.precipitacion < 5) condicionesSecas++;
       else if (d.precipitacion <= 20) condicionesModeradas++;
       else excesoLluvias++;
@@ -1420,7 +1425,7 @@ if (keys.length > 0) {
       { name: 'Exceso de Lluvias',      value: excesoLluvias,         porcentaje: ((excesoLluvias         / totalDias) * 100).toFixed(1), color: '#3b82f6' },
     ];
     const datosPorMes = {};
-    datosFiltradosAdmin.forEach(d => {
+    datosFiltradosDashboard.forEach(d => {
       const mes = new Date(d.date).getMonth();
       if (!datosPorMes[mes]) datosPorMes[mes] = { total: 0, tomate: 0, banana: 0, cacao: 0, arroz: 0, maiz: 0 };
       datosPorMes[mes].total++;
@@ -1446,8 +1451,31 @@ if (keys.length > 0) {
       tendenciaMensual.forEach(m => { if (parseFloat(m[cultivo]) > parseFloat(mejorMes?.[cultivo] || 0)) mejorMes = m; });
       mejorMesPorCultivo[cultivo] = mejorMes?.mes || 'N/A';
     });
-    return { totalDias, viabilidadCultivos, datosViabilidadPie, datosBarra, datosPerfilClimatico, tendenciaMensual, mejorMesPorCultivo };
-  }, [datosFiltradosAdmin]);
+    const fechasOrd = datosFiltradosDashboard.map((d) => d.date).filter(Boolean).sort();
+    const periodoDataset =
+      fechasOrd.length > 0 ? `${fechasOrd[0]} → ${fechasOrd[fechasOrd.length - 1]}` : '';
+    const años = [
+      ...new Set(
+        datosFiltradosDashboard
+          .map((d) => (d.date ? new Date(d.date + 'T12:00:00').getFullYear() : null))
+          .filter((y) => y != null && !Number.isNaN(y))
+      ),
+    ].sort((a, b) => a - b);
+    let etiquetaAñosEnTendencia = '';
+    if (años.length === 1) etiquetaAñosEnTendencia = ` (${años[0]})`;
+    else if (años.length > 1) etiquetaAñosEnTendencia = ` (${años[0]}–${años[años.length - 1]})`;
+    return {
+      totalDias,
+      viabilidadCultivos,
+      datosViabilidadPie,
+      datosBarra,
+      datosPerfilClimatico,
+      tendenciaMensual,
+      mejorMesPorCultivo,
+      periodoDataset,
+      etiquetaAñosEnTendencia,
+    };
+  }, [datosFiltradosDashboard]);
 
   const obtenerRecomendaciones = () => {
     const temp = ultimoFirebase?.temperatura || ultimoRegistro?.temperatura || 0;
@@ -1510,11 +1538,45 @@ if (keys.length > 0) {
         </div>
       </div>
 
+      {activeTab === 'dashboard' && (
+        <div className="bg-white rounded-xl shadow-lg p-4 flex flex-wrap items-center gap-2 md:gap-3">
+          <span className="text-gray-700 font-medium text-sm">Filtrar por fecha:</span>
+          <input
+            type="date"
+            value={filtroDashDesde}
+            onChange={(e) => setFiltroDashDesde(e.target.value)}
+            max={new Date().toISOString().slice(0, 10)}
+            className="border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+          <span className="text-gray-500 text-sm">a</span>
+          <input
+            type="date"
+            value={filtroDashHasta}
+            onChange={(e) => setFiltroDashHasta(e.target.value)}
+            max={new Date().toISOString().slice(0, 10)}
+            className="border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => { setFiltroDashDesde(''); setFiltroDashHasta(''); }}
+            disabled={!filtroDashDesde && !filtroDashHasta}
+            className="px-3 py-1.5 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium disabled:opacity-50"
+          >
+            Limpiar
+          </button>
+          {(filtroDashDesde || filtroDashHasta) && (
+            <span className="text-xs text-slate-500 w-full md:w-auto">
+              Mostrando {datosFiltradosDashboard.length} de {datos.length} registros
+            </span>
+          )}
+        </div>
+      )}
+
 {activeTab === 'dashboard' && (
   <DashboardEstudiante 
-    ultimoRegistro={ultimoRegistro}
-    stats={stats}
-    datos={datos}
+    ultimoRegistro={ultimoRegistroDashboard ?? ultimoRegistro}
+    stats={statsDashboard}
+    datos={datosFiltradosDashboard}
     mockCropRecommendations={mockCropRecommendations}
     ultimoFirebase={ultimoFirebase}
     datosCSV={datosCSV}
@@ -1626,7 +1688,7 @@ if (keys.length > 0) {
                     <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#34d399' }}>Producción</span>
                       <h3 className="text-base font-bold text-slate-800 mt-1">Días Viables por Cultivo</h3>
-                      <p className="text-xs text-slate-500 mt-0.5">Total de registros favorables</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Registros favorables por cultivo</p>
                     </div>
                     <div className="p-4">
                       <ResponsiveContainer width="100%" height={270}>
@@ -1679,8 +1741,12 @@ if (keys.length > 0) {
                   <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
                     <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#c084fc' }}>Tendencia</span>
-                      <h3 className="text-base font-bold text-slate-800 mt-1">Viabilidad Mensual</h3>
-                      <p className="text-xs text-slate-500 mt-0.5">Evolución porcentual por mes</p>
+                      <h3 className="text-base font-bold text-slate-800 mt-1">Tendencia mensual de viabilidad (%){datosDashboardAdmin.etiquetaAñosEnTendencia || ''}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {datosDashboardAdmin.periodoDataset
+                          ? `Periodo: ${datosDashboardAdmin.periodoDataset}`
+                          : 'Evolución porcentual por mes'}
+                      </p>
                     </div>
                     <div className="p-4">
                       <ResponsiveContainer width="100%" height={300}>
