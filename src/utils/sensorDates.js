@@ -170,11 +170,11 @@ export function parseFirebaseTimestamp(timestamp) {
  */
 export function fechaISOparaFiltro(row) {
   if (!row) return null;
-  if (row.date && /^\d{4}-\d{2}-\d{2}/.test(String(row.date))) {
-    return String(row.date).slice(0, 10);
-  }
-  const fromDisplay = parseFirebaseTimestamp(row.dateDisplay);
-  if (fromDisplay.isoDate) return fromDisplay.isoDate;
+  // IMPORTANTE: no usar `row.date` directo sin validar año; si no,
+  // fechas ya contaminadas (p.ej. 2031-...) siguen apareciendo en el rango "Disponible".
   const fromDate = parseFirebaseTimestamp(row.date);
-  return fromDate.isoDate;
+  if (fromDate.isoDate) return fromDate.isoDate;
+
+  const fromDisplay = parseFirebaseTimestamp(row.dateDisplay);
+  return fromDisplay.isoDate;
 }
