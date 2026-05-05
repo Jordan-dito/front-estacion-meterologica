@@ -178,3 +178,26 @@ export function fechaISOparaFiltro(row) {
   const fromDisplay = parseFirebaseTimestamp(row.dateDisplay);
   return fromDisplay.isoDate;
 }
+
+/**
+ * Texto para columnas "Fecha": mantiene hora si existe (Firebase); si solo hay día (CSV),
+ * muestra DD/MM/YYYY 00:00 para no perder el formato con hora que espera el cliente.
+ */
+export function formatDateDisplayForRow(row) {
+  if (!row) return 'Sin fecha';
+  const disp = row.dateDisplay;
+  if (disp && /\d{1,2}:\d{2}/.test(String(disp))) {
+    return String(disp);
+  }
+  const iso = row.date;
+  if (iso && /^\d{4}-\d{2}-\d{2}/.test(String(iso))) {
+    const s = String(iso).slice(0, 10);
+    const [y, m, d] = s.split('-');
+    if (y && m && d) {
+      return `${d}/${m}/${y} 00:00`;
+    }
+  }
+  if (disp) return String(disp);
+  if (iso) return String(iso);
+  return 'Sin fecha';
+}

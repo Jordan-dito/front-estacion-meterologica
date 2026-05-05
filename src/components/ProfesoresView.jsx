@@ -5,7 +5,7 @@ import PredictorCultivos from './PredictorCultivos';
 import ModalDescargarPDF from './Modaldescargarpdf';
 // import AnalisisKMeans from './AnalisisKMeans';
 import Papa from 'papaparse';
-import { parseFirebaseTimestamp } from '../utils/sensorDates';
+import { parseFirebaseTimestamp, formatDateDisplayForRow } from '../utils/sensorDates';
 
 // ============================================================================
 // URL DE FIREBASE
@@ -141,7 +141,7 @@ const firebaseComoCSV = registros.map((r) => {
         complete: (results) => {
           const datosParseados = results.data.map((row) => ({
             date: row.date || '',
-            dateDisplay: row.date || '',
+            dateDisplay: formatDateDisplayForRow({ date: row.date || '', dateDisplay: row.date || '' }),
             dateSort: row.date ? new Date(row.date).getTime() || 0 : 0,
             temperatura: parseFloat(row.Temperatura) || 0,
             radiacion_solar: (parseFloat(row.RadiacionsolarpromediokWm2) || 0),
@@ -179,7 +179,7 @@ const firebaseComoCSV = registros.map((r) => {
 useEffect(() => {
   const csvConDisplay = datosCSV.map((d) => ({
     ...d,
-    dateDisplay: d.date || d.dateDisplay,
+    dateDisplay: formatDateDisplayForRow(d),
   }));
   const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
   const minCsvDate = Array.from(fechasCSV).sort()[0] || null;
@@ -726,7 +726,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                     ].filter(Boolean).join(' ');
                     return (
                       <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-mono text-sm">{d.dateDisplay}</td>
+                        <td className="px-4 py-3 font-mono text-sm">{formatDateDisplayForRow(d)}</td>
                         <td className="px-4 py-3 text-red-600 font-semibold">{d.temperatura}°C</td>
                         <td className="px-4 py-3 text-blue-600">{d.humedad}%</td>
                         <td className="px-4 py-3 text-yellow-600">{typeof d.radiacion_solar === 'number' ? d.radiacion_solar.toFixed(1) : d.radiacion_solar} kW/m²</td>

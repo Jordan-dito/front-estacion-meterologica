@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import PredictorCultivos from './PredictorCultivos';
 import AnalisisKMeans from './AnalisisKMeans';
-import { parseFirebaseTimestamp } from '../utils/sensorDates';
+import { parseFirebaseTimestamp, formatDateDisplayForRow } from '../utils/sensorDates';
 
 // ============================================================================
 // URL DE FIREBASE
@@ -1173,7 +1173,7 @@ if (keys.length > 0) {
         complete: (results) => {
           const datosParseados = results.data.map((row) => ({
             date: row.date || '',
-            dateDisplay: row.date || '',
+            dateDisplay: formatDateDisplayForRow({ date: row.date || '', dateDisplay: row.date || '' }),
             dateSort: row.date ? new Date(row.date).getTime() || 0 : 0,
             temperatura: parseFloat(row.Temperatura) || 0,
             radiacion_solar: (parseFloat(row.RadiacionsolarpromediokWm2) || 0),
