@@ -112,6 +112,8 @@ export function fechaISOparaFiltro(row) {
   if (row.date && /^\d{4}-\d{2}-\d{2}/.test(String(row.date))) {
     return String(row.date).slice(0, 10);
   }
-  const parsed = parseFirebaseTimestamp(row.dateDisplay);
-  return parsed.isoDate;
+  const fromDisplay = parseFirebaseTimestamp(row.dateDisplay);
+  if (fromDisplay.isoDate) return fromDisplay.isoDate;
+  const fromDate = parseFirebaseTimestamp(row.date);
+  return fromDate.isoDate;
 }

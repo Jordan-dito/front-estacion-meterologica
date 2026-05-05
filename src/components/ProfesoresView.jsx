@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { TrendingUp, Zap, RefreshCw, BarChart3, ChevronLeft, ChevronRight, Database, Thermometer, Droplets, CloudRain, Sun, Activity } from 'lucide-react';
+import { TrendingUp, Zap, RefreshCw, BarChart3, ChevronLeft, ChevronRight, Database, Thermometer, Droplets, CloudRain, Sun, Activity, X } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area } from 'recharts';
 import PredictorCultivos from './PredictorCultivos';
 import ModalDescargarPDF from './Modaldescargarpdf';
@@ -270,6 +270,8 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
 
 
   const COLORS = ['#ef4444', '#f59e0b', '#8B4513', '#22c55e', '#eab308'];
+  const COLORES_CULTIVOS_ADMIN = { tomate: '#ef4444', banana: '#f59e0b', cacao: '#8B4513', arroz: '#22c55e', maiz: '#eab308' };
+  const COLORES_CLIMA_ADMIN = ['#f59e0b', '#22c55e', '#3b82f6'];
 
   // ========================================================================
   // ⭐ FILTRO DE FECHAS PARA DASHBOARD
@@ -467,31 +469,6 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
           <h2 className="text-2xl font-bold text-gray-800">👨‍🏫 Panel Avanzado de Profesor</h2>
           <div className="flex gap-2 flex-wrap items-center">
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 shadow-sm">
-              <label className="text-gray-700 font-medium text-sm">Filtrar por fecha:</label>
-              <input
-                type="date"
-                max={today}
-                className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
-                value={filtroInicio}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={e => setFiltroInicio(e.target.value)}
-              />
-              <span className="text-gray-500">a</span>
-              <input
-                type="date"
-                max={today}
-                className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
-                value={filtroFin}
-                max={new Date().toISOString().split('T')[0]}
-                onChange={e => setFiltroFin(e.target.value)}
-              />
-              <button
-                onClick={() => { setFiltroInicio(''); setFiltroFin(''); }}
-                className="ml-2 px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs transition"
-                disabled={!filtroInicio && !filtroFin}
-              >Limpiar</button>
-            </div>
             <button
               onClick={fetchFirebase}
               disabled={loadingFirebase}
@@ -776,199 +753,234 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
 
       {/* TAB: GRÁFICOS */}
       {activeTab === 'graficos' && datosDashboardResumen && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-800 text-center">
-              📊 DASHBOARD: Análisis de Viabilidad de Cultivos
-            </h2>
-            <p className="text-center text-gray-500 mt-2">
-              {datosDashboardResumen.totalDias} registros
-              {datosDashboardResumen.periodoDataset
-                ? ` · Periodo: ${datosDashboardResumen.periodoDataset}`
-                : ''}
-            </p>
-          </div>
+        <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #bae6fd 0%, #a5f3fc 50%, #cffafe 100%)' }}>
+          <div className="p-6 space-y-6">
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Viabilidad promedio por cultivo (%)
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                  <Pie
-                    data={datosDashboardResumen.datosViabilidadPie}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={false}
-                    outerRadius={72}
-                    dataKey="value"
-                  >
-                    {datosDashboardResumen.datosViabilidadPie.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name) => [`${value}%`, name]} />
-                  <Legend
-                    formatter={(value, entry) =>
-                      entry?.payload != null
-                        ? `${entry.payload.name}: ${entry.payload.value}%`
-                        : value
-                    }
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Días viables por cultivo
-              </h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={datosDashboardResumen.datosBarra}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="cultivo" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="dias" name="Días Viables">
-                    {datosDashboardResumen.datosBarra.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Distribución de perfiles climáticos
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                  <Pie
-                    data={datosDashboardResumen.datosPerfilClimatico}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={false}
-                    outerRadius={72}
-                    dataKey="value"
-                  >
-                    {datosDashboardResumen.datosPerfilClimatico.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORES_CLIMA[index]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name, props) => [`${value} días (${props.payload.porcentaje}%)`, props.payload.name]} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                Tendencia mensual de viabilidad (%){datosDashboardResumen.etiquetaAñosEnTendencia || ''}
-              </h3>
-              <p className="text-center text-xs text-gray-500 mb-2">
-                {datosDashboardResumen.periodoDataset
-                  ? `Datos comprendidos entre ${datosDashboardResumen.periodoDataset}`
-                  : ''}
-              </p>
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={datosDashboardResumen.tendenciaMensual}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip formatter={(value) => `${value}%`} />
-                  <Legend />
-                  <Line type="monotone" dataKey="tomate" stroke="#ef4444" name="Tomate" strokeWidth={2} />
-                  <Line type="monotone" dataKey="banana" stroke="#f59e0b" name="Banana" strokeWidth={2} />
-                  <Line type="monotone" dataKey="cacao" stroke="#8B4513" name="Cacao" strokeWidth={2} />
-                  <Line type="monotone" dataKey="arroz" stroke="#22c55e" name="Arroz" strokeWidth={2} />
-                  <Line type="monotone" dataKey="maiz" stroke="#eab308" name="Maíz" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-                📋 Resumen Estadístico
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-300 px-4 py-3 text-left">Cultivo</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center">% Viabilidad</th>
-                      <th className="border border-gray-300 px-4 py-3 text-center">Mejor Mes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {['tomate', 'banana', 'cacao', 'arroz', 'maiz'].map((cultivo) => (
-                      <tr key={cultivo} className="hover:bg-gray-50">
-                        <td className="border border-gray-300 px-4 py-3 capitalize font-medium">
-                          <span className="flex items-center gap-2">
-                            {cultivo === 'tomate' && '🍅'}
-                            {cultivo === 'banana' && '🍌'}
-                            {cultivo === 'cacao' && '🌰'}
-                            {cultivo === 'arroz' && '🌾'}
-                            {cultivo === 'maiz' && '🌽'}
-                            {cultivo.charAt(0).toUpperCase() + cultivo.slice(1)}
-                          </span>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-center">
-                          <span
-                            className="font-bold px-2 py-1 rounded"
-                            style={{
-                              backgroundColor: `${COLORES_CULTIVOS[cultivo]}20`,
-                              color: COLORES_CULTIVOS[cultivo]
-                            }}
-                          >
-                            {datosDashboardResumen.viabilidadCultivos[cultivo].porcentaje}%
-                          </span>
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-center">
-                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">
-                            {datosDashboardResumen.mejorMesPorCultivo[cultivo]}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
-            <h3 className="text-xl font-bold mb-4">💡 Insights Clave</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                <p className="text-sm opacity-90">Cultivo más viable</p>
-                <p className="text-2xl font-bold">🌰 Cacao</p>
-                <p className="text-sm">{datosDashboardResumen.viabilidadCultivos.cacao.porcentaje}% de los días</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                <p className="text-sm opacity-90">Condición climática dominante</p>
-                <p className="text-2xl font-bold">
-                  {datosDashboardResumen.datosPerfilClimatico.reduce((max, p) =>
-                    p.value > max.value ? p : max
-                  ).name}
-                </p>
-                <p className="text-sm">
-                  {datosDashboardResumen.datosPerfilClimatico.reduce((max, p) =>
-                    p.value > max.value ? p : max
-                  ).porcentaje}% del período
+            {/* HEADER */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-sky-600 mb-1">Panel de Análisis</p>
+                <h2 className="text-3xl font-extrabold text-slate-800">Viabilidad de Cultivos</h2>
+                <p className="text-slate-500 text-sm mt-1">
+                  {filtroInicio || filtroFin
+                    ? `Período filtrado: ${filtroInicio || '—'} → ${filtroFin || '—'}`
+                    : `${datosFiltrados.length.toLocaleString()} registros analizados`}
                 </p>
               </div>
-              <div className="bg-white/20 backdrop-blur p-4 rounded-lg">
-                <p className="text-sm opacity-90">Registros en el análisis</p>
-                <p className="text-2xl font-bold">{datosDashboardResumen.totalDias}</p>
-                <p className="text-sm">registros procesados</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
+                  <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Desde</label>
+                  <input type="date" value={filtroInicio} onChange={e => setFiltroInicio(e.target.value)}
+                    max={today} className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
+                </div>
+                <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
+                  <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Hasta</label>
+                  <input type="date" value={filtroFin} onChange={e => setFiltroFin(e.target.value)}
+                    max={today} className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
+                </div>
+                {(filtroInicio || filtroFin) && (
+                  <button onClick={() => { setFiltroInicio(''); setFiltroFin(''); }}
+                    className="flex items-center gap-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-600 text-sm font-semibold px-4 py-2.5 rounded-xl transition border border-red-500/30">
+                    <X size={14} /> Limpiar
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* KPI PILLS */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {[
+                { c: 'tomate', emoji: '🍅', label: 'Tomate' },
+                { c: 'banana', emoji: '🍌', label: 'Banana' },
+                { c: 'cacao',  emoji: '🌰', label: 'Cacao'  },
+                { c: 'arroz',  emoji: '🌾', label: 'Arroz'  },
+                { c: 'maiz',   emoji: '🌽', label: 'Maíz'   },
+              ].map(({ c, emoji, label }) => (
+                <div key={c} className="rounded-2xl p-4 border border-sky-200 text-center"
+                  style={{ background: 'rgba(255,255,255,0.7)' }}>
+                  <p className="text-2xl mb-1">{emoji}</p>
+                  <p className="text-2xl font-extrabold text-slate-800">{datosDashboardResumen.viabilidadCultivos[c].porcentaje}%</p>
+                  <p className="text-xs font-semibold mt-0.5" style={{ color: COLORES_CULTIVOS_ADMIN[c] }}>{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* FILA 1: 3 GRÁFICAS */}
+            <div className="grid md:grid-cols-3 gap-5">
+
+              {/* DONUT: Viabilidad */}
+              <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#818cf8' }}>Viabilidad</span>
+                  <h3 className="text-base font-bold text-slate-800 mt-1">Porcentaje por Cultivo</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Promedio general del período</p>
+                </div>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={270}>
+                    <PieChart>
+                      <Pie data={datosDashboardResumen.datosViabilidadPie} cx="50%" cy="50%"
+                        innerRadius={62} outerRadius={98} paddingAngle={4} dataKey="value">
+                        {datosDashboardResumen.datosViabilidadPie.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} stroke="transparent" />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v, n) => [`${v}%`, n]}
+                        contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }} />
+                      <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* BAR: Días viables */}
+              <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#34d399' }}>Producción</span>
+                  <h3 className="text-base font-bold text-slate-800 mt-1">Total de Datos Viables</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Registros favorables por cultivo</p>
+                </div>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={270}>
+                    <BarChart data={datosDashboardResumen.datosBarra} barCategoryGap="28%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,165,233,0.15)" vertical={false} />
+                      <XAxis dataKey="cultivo" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip formatter={(v) => [`${v.toLocaleString()} días`, 'Viables']}
+                        contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }}
+                        cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+                      <Bar dataKey="dias" radius={[8, 8, 0, 0]}>
+                        {datosDashboardResumen.datosBarra.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* DONUT: Perfil climático */}
+              <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#fbbf24' }}>Clima</span>
+                  <h3 className="text-base font-bold text-slate-800 mt-1">Perfil Climático</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Distribución de condiciones</p>
+                </div>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={270}>
+                    <PieChart>
+                      <Pie data={datosDashboardResumen.datosPerfilClimatico} cx="50%" cy="50%"
+                        innerRadius={62} outerRadius={98} paddingAngle={4} dataKey="value">
+                        {datosDashboardResumen.datosPerfilClimatico.map((entry, i) => (
+                          <Cell key={i} fill={COLORES_CLIMA_ADMIN[i]} stroke="transparent" />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v, n, p) => [`${v} días (${p.payload.porcentaje}%)`, p.payload.name]}
+                        contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }} />
+                      <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* FILA 2: LÍNEA + RANKING */}
+            <div className="grid md:grid-cols-2 gap-5">
+
+              {/* LINE CHART */}
+              <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#c084fc' }}>Tendencia</span>
+                  <h3 className="text-base font-bold text-slate-800 mt-1">Tendencia mensual de viabilidad (%){datosDashboardResumen.etiquetaAñosEnTendencia || ''}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {datosDashboardResumen.periodoDataset
+                      ? `Periodo: ${datosDashboardResumen.periodoDataset}`
+                      : 'Evolución porcentual por mes'}
+                  </p>
+                </div>
+                <div className="p-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={datosDashboardResumen.tendenciaMensual}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,165,233,0.15)" />
+                      <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} unit="%" />
+                      <Tooltip formatter={(v) => [`${v}%`]}
+                        contentStyle={{ background: '#fff', border: '1px solid #bae6fd', borderRadius: '12px', color: '#1e293b', fontSize: '13px' }} />
+                      <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#475569' }} />
+                      <Line type="monotone" dataKey="tomate" stroke="#ef4444" name="Tomate" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                      <Line type="monotone" dataKey="banana" stroke="#f59e0b" name="Banana" strokeWidth={2.5} dot={{ r: 3, fill: '#f59e0b' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                      <Line type="monotone" dataKey="cacao"  stroke="#a78bfa" name="Cacao"  strokeWidth={2.5} dot={{ r: 3, fill: '#a78bfa' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                      <Line type="monotone" dataKey="arroz"  stroke="#34d399" name="Arroz"  strokeWidth={2.5} dot={{ r: 3, fill: '#34d399' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                      <Line type="monotone" dataKey="maiz"   stroke="#fde047" name="Maíz"   strokeWidth={2.5} dot={{ r: 3, fill: '#fde047' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* RANKING */}
+              <div className="rounded-2xl overflow-hidden border border-sky-200" style={{ background: 'rgba(255,255,255,0.75)' }}>
+                <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#38bdf8' }}>Ranking</span>
+                  <h3 className="text-base font-bold text-slate-800 mt-1">Viabilidad por Cultivo</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Ordenado de mayor a menor</p>
+                </div>
+                <div className="p-6 space-y-5">
+                  {['tomate','banana','cacao','arroz','maiz']
+                    .map(c => ({ c, pct: parseFloat(datosDashboardResumen.viabilidadCultivos[c].porcentaje) }))
+                    .sort((a, b) => b.pct - a.pct)
+                    .map(({ c, pct }, i) => (
+                      <div key={c}>
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-xs font-bold text-slate-600 w-4">#{i+1}</span>
+                            <span className="text-base">
+                              {c === 'tomate' ? '🍅' : c === 'banana' ? '🍌' : c === 'cacao' ? '🌰' : c === 'arroz' ? '🌾' : '🌽'}
+                            </span>
+                            <span className="text-sm font-semibold text-slate-700">{c.charAt(0).toUpperCase() + c.slice(1)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                              style={{ background: `${COLORES_CULTIVOS_ADMIN[c]}22`, color: COLORES_CULTIVOS_ADMIN[c] }}>
+                              {datosDashboardResumen.mejorMesPorCultivo[c]}
+                            </span>
+                            <span className="text-base font-extrabold" style={{ color: COLORES_CULTIVOS_ADMIN[c] }}>{pct}%</span>
+                          </div>
+                        </div>
+                        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(14,165,233,0.15)' }}>
+                          <div className="h-full rounded-full"
+                            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${COLORES_CULTIVOS_ADMIN[c]}cc, ${COLORES_CULTIVOS_ADMIN[c]})` }} />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* INSIGHTS */}
+            <div className="grid md:grid-cols-3 gap-5">
+              <div className="rounded-2xl p-6 border border-emerald-400" style={{ background: 'rgba(255,255,255,0.85)' }}>
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">Top Cultivo</span>
+                <p className="text-4xl mt-3 mb-1">🌰</p>
+                <p className="text-2xl font-extrabold text-slate-800">Cacao</p>
+                <p className="text-emerald-600 text-sm mt-1">{datosDashboardResumen.viabilidadCultivos.cacao.porcentaje}% de días viables</p>
+              </div>
+              <div className="rounded-2xl p-6 border border-amber-400" style={{ background: 'rgba(255,255,255,0.85)' }}>
+                <span className="text-xs font-bold uppercase tracking-widest text-amber-600">Clima</span>
+                <div className="mt-3 mb-1"><CloudRain size={28} className="text-amber-500" /></div>
+                <p className="text-xl font-extrabold text-slate-800 leading-tight">
+                  {datosDashboardResumen.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).name}
+                </p>
+                <p className="text-amber-600 text-sm mt-1">
+                  {datosDashboardResumen.datosPerfilClimatico.reduce((max, p) => p.value > max.value ? p : max).porcentaje}% del período
+                </p>
+              </div>
+              <div className="rounded-2xl p-6 border border-blue-400" style={{ background: 'rgba(255,255,255,0.85)' }}>
+                <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Dataset</span>
+                <div className="mt-3 mb-1"><Database size={28} className="text-blue-500" /></div>
+                <p className="text-3xl font-extrabold text-slate-800">{datosDashboardResumen.totalDias.toLocaleString()}</p>
+                <p className="text-blue-600 text-sm mt-1">registros procesados</p>
+              </div>
+            </div>
+
           </div>
         </div>
       )}

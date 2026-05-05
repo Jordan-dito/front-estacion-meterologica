@@ -683,7 +683,13 @@ const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, u
               <div className="flex justify-between bg-white p-3 rounded">
                 <span className="text-gray-700">Período:</span>
                 <span className="font-bold text-gray-900 text-sm">
-                  {datos.length > 0 ? `${datos[0].date} a ${datos[datos.length - 1].date}` : 'N/A'}
+                  {(() => {
+                    const fechas = datos
+                      .map(d => d.date)
+                      .filter(f => f && /^\d{4}-\d{2}-\d{2}/.test(f) && parseInt(f) >= 2020 && parseInt(f) <= 2030)
+                      .sort();
+                    return fechas.length > 0 ? `${fechas[0]} a ${fechas[fechas.length - 1]}` : 'N/A';
+                  })()}
                 </span>
               </div>
             </div>
@@ -1451,7 +1457,10 @@ if (keys.length > 0) {
       tendenciaMensual.forEach(m => { if (parseFloat(m[cultivo]) > parseFloat(mejorMes?.[cultivo] || 0)) mejorMes = m; });
       mejorMesPorCultivo[cultivo] = mejorMes?.mes || 'N/A';
     });
-    const fechasOrd = datosFiltradosDashboard.map((d) => d.date).filter(Boolean).sort();
+    const fechasOrd = datosFiltradosDashboard
+      .map((d) => d.date)
+      .filter(f => f && /^\d{4}-\d{2}-\d{2}/.test(f) && parseInt(f) >= 2020 && parseInt(f) <= 2030)
+      .sort();
     const periodoDataset =
       fechasOrd.length > 0 ? `${fechasOrd[0]} → ${fechasOrd[fechasOrd.length - 1]}` : '';
     const años = [

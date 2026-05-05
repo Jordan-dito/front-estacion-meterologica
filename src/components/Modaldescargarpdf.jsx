@@ -26,16 +26,16 @@ const normalizarFecha = (fechaStr) => {
     const partes = soloFecha.split('/');
     
     if (partes.length === 3) {
-      let [año, mes, dia] = partes; // ⭐ CORREGIDO: AÑO/MES/DÍA
-      
+      let [dia, mes, año] = partes; // DD/MM/YY o DD/MM/YYYY (formato Ecuador)
+
       // Si el año tiene 2 dígitos, agregar "20"
       if (año.length === 2) {
         año = '20' + año;
       }
-      
+
       dia = dia.padStart(2, '0');
       mes = mes.padStart(2, '0');
-      
+
       return `${año}-${mes}-${dia}`;
     }
   }
