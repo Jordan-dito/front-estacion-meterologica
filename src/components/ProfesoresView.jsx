@@ -89,7 +89,9 @@ const firebaseComoCSV = registros.map((r) => {
   const lluvia = r.lluvia < 0 ? 0 : r.lluvia || 0;
   const uvIndex = r.uvIndex || 0;
 
-  const parsed = parseFirebaseTimestamp(r.timestamp);
+  // Algunos nodos vienen con `timestamp` (YY/MM/DD HH:mm) y otros con `fecha` (YYYY-MM-DD HH:mm)
+  const rawTimestamp = r.timestamp || r.fecha || '';
+  const parsed = parseFirebaseTimestamp(rawTimestamp);
   const fechaParaFiltro = parsed.isoDate;
   const fechaParaMostrar = parsed.dateDisplay;
   const dateSortValue = parsed.sortMs;
@@ -100,6 +102,7 @@ const firebaseComoCSV = registros.map((r) => {
     date: fechaParaFiltro,
     dateDisplay: fechaParaMostrar,
     dateSort: dateSortValue,
+    rawTimestamp,
     temperatura: temp,
     radiacion_solar: uvIndex,
     humedad_suelo: humedadSuelo,
@@ -181,11 +184,16 @@ useEffect(() => {
     ...d,
     dateDisplay: formatDateDisplayForRow(d),
   }));
+  const csvDateSort = new Set(
+    datosCSV.map((d) => d.dateSort).filter((v) => typeof v === 'number' && v > 0)
+  );
   const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
   const minCsvDate = Array.from(fechasCSV).sort()[0] || null;
   const firebaseNuevos = datosFirebaseArray.filter((d) => {
     if (!d.date) return false;
-    if (fechasCSV.has(d.date)) return false;
+    // No eliminar lecturas con hora solo porque caen el mismo día que el CSV.
+    // Dedupe por timestamp (dateSort) para permitir múltiples lecturas diarias.
+    if (d.dateSort && csvDateSort.has(d.dateSort)) return false;
     // Evitar que lecturas antiguas del sensor (p.ej. 2016) contaminen el rango/tabla
     if (minCsvDate && d.date < minCsvDate) return false;
     return true;
@@ -213,7 +221,8 @@ const normalizarDatosFirebase = (firebaseData) => {
     humedad: typeof d.humedad === "number" ? d.humedad : null,
     uvIndex: typeof d.uvIndex === "number" ? d.uvIndex : null,
     lluvia: typeof d.lluvia === "number" ? d.lluvia : null,
-    date: d.timestamp ? d.timestamp.split(" ")[0] : null
+    // IMPORTANTE: no truncar la hora; el formato original (timestamp/fecha) se parsea arriba.
+    date: d.timestamp || d.fecha || null
   }));
 };
 const calcularEstadisticas = () => {
@@ -221,7 +230,7 @@ const calcularEstadisticas = () => {
 
   // 🔥 FECHA YYYY-MM-DD
   const fechas = datos
-    .map(d => d.date?.split(" ")[0])
+    .map(d => d.date)
     .filter(Boolean)
     .sort();
 
