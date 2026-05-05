@@ -177,27 +177,31 @@ const firebaseComoCSV = registros.map((r) => {
   }, []);
 
 // ========================================================================
-// ⭐ COMBINAR CSV + FIREBASE (misma regla que administración: sin duplicar por fecha)
+// ⭐ COMBINAR CSV + FIREBASE (un registro Firebase por fecha, sin solapar CSV)
 // ========================================================================
 useEffect(() => {
   const csvConDisplay = datosCSV.map((d) => ({
     ...d,
     dateDisplay: formatDateDisplayForRow(d),
   }));
-  const csvDateSort = new Set(
-    datosCSV.map((d) => d.dateSort).filter((v) => typeof v === 'number' && v > 0)
-  );
   const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
   const minCsvDate = Array.from(fechasCSV).sort()[0] || null;
-  const firebaseNuevos = datosFirebaseArray.filter((d) => {
-    if (!d.date) return false;
-    // No eliminar lecturas con hora solo porque caen el mismo día que el CSV.
-    // Dedupe por timestamp (dateSort) para permitir múltiples lecturas diarias.
-    if (d.dateSort && csvDateSort.has(d.dateSort)) return false;
-    // Evitar que lecturas antiguas del sensor (p.ej. 2016) contaminen el rango/tabla
+
+  // Deduplicar Firebase: un registro por fecha (el más reciente)
+  const firebaseByDate = {};
+  datosFirebaseArray.forEach((d) => {
+    if (!d.date) return;
+    if (!firebaseByDate[d.date] || (d.dateSort || 0) > (firebaseByDate[d.date].dateSort || 0)) {
+      firebaseByDate[d.date] = d;
+    }
+  });
+
+  const firebaseNuevos = Object.values(firebaseByDate).filter((d) => {
+    if (fechasCSV.has(d.date)) return false;
     if (minCsvDate && d.date < minCsvDate) return false;
     return true;
   });
+
   const combinados = [...csvConDisplay, ...firebaseNuevos];
   combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
   setDatos(combinados);
@@ -659,7 +663,6 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroInicio}
-                  max={new Date().toISOString().split('T')[0]}
                   onChange={e => { setFiltroInicio(e.target.value); setPaginaActual(1); }}
                 />
                 <label className="text-gray-700 font-medium text-sm">Fin:</label>
@@ -668,7 +671,6 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                   max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroFin}
-                  max={new Date().toISOString().split('T')[0]}
                   onChange={e => { setFiltroFin(e.target.value); setPaginaActual(1); }}
                 />
                 <button

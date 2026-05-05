@@ -205,11 +205,19 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
     const minCSV = fechasCSVOrdenadas[0] || null;
     const maxCSV = fechasCSVOrdenadas[fechasCSVOrdenadas.length - 1] || null;
 
-    const firebaseNuevos = datosFirebaseArray.filter(d => {
+    // Deduplicar Firebase: un registro por fecha (el más reciente)
+    const firebaseByDate = {};
+    datosFirebaseArray.forEach((d) => {
+      if (!d.date) return;
+      if (!firebaseByDate[d.date] || (d.dateSort || 0) > (firebaseByDate[d.date].dateSort || 0)) {
+        firebaseByDate[d.date] = d;
+      }
+    });
+
+    const firebaseNuevos = Object.values(firebaseByDate).filter(d => {
       if (!d.date) return false;
       if (fechasCSV.has(d.date)) return false;
       if (minCSV && d.date < minCSV) return false;
-      // Permitir que Firebase extienda hacia adelante; si el sensor manda futuro, el parser lo marcará inválido.
       if (maxCSV && d.date > maxCSV && d.date > new Date().toISOString().slice(0, 10)) return false;
       return true;
     });

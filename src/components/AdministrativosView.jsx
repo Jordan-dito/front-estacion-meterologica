@@ -1200,20 +1200,28 @@ if (keys.length > 0) {
   };
 
   // ========================================================================
-  // ⭐ COMBINAR CSV + FIREBASE
+  // ⭐ COMBINAR CSV + FIREBASE (un registro Firebase por fecha, sin solapar CSV)
   // ========================================================================
   useEffect(() => {
     const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
     const csvMinDate = datosCSV.map((d) => d.date).filter(Boolean).sort()[0] || null;
 
-    const firebaseNuevos = datosFirebaseArray
+    // Deduplicar Firebase: un registro por fecha (el más reciente)
+    const firebaseByDate = {};
+    datosFirebaseArray.forEach((d) => {
+      if (!d.date) return;
+      if (!firebaseByDate[d.date] || (d.dateSort || 0) > (firebaseByDate[d.date].dateSort || 0)) {
+        firebaseByDate[d.date] = d;
+      }
+    });
+
+    const firebaseNuevos = Object.values(firebaseByDate)
       .filter((d) => d.date && !fechasCSV.has(d.date))
-      // No permitir que Firebase empuje el mínimo por debajo del histórico CSV
       .filter((d) => !csvMinDate || d.date >= csvMinDate);
 
     const combinados = [...datosCSV, ...firebaseNuevos];
     combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
-    
+
     setDatos(combinados);
   }, [datosCSV, datosFirebaseArray]);
 
