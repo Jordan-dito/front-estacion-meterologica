@@ -735,7 +735,11 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                     ].filter(Boolean).join(' ');
                     return (
                       <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-mono text-sm">{formatDateDisplayForRow(d)}</td>
+                        <td className="px-4 py-3 font-mono text-sm">
+                          {d.fuente === 'csv'
+                            ? (d.dateDisplay ? String(d.dateDisplay).slice(0, 10) : (d.date ? String(d.date).slice(0, 10) : 'Sin fecha'))
+                            : formatDateDisplayForRow(d)}
+                        </td>
                         <td className="px-4 py-3 text-red-600 font-semibold">{d.temperatura}°C</td>
                         <td className="px-4 py-3 text-blue-600">{d.humedad}%</td>
                         <td className="px-4 py-3 text-yellow-600">{typeof d.radiacion_solar === 'number' ? d.radiacion_solar.toFixed(1) : d.radiacion_solar} kW/m²</td>
