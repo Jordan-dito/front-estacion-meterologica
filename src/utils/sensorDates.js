@@ -134,11 +134,13 @@ export function parseFirebaseTimestamp(timestamp) {
     const dateObj = new Date(ts * 1000);
     if (Number.isNaN(dateObj.getTime())) return { ...INVALID };
     if (!isPlausibleYear(dateObj.getFullYear())) return { ...INVALID };
-    const isoDate = dateObj.toISOString().slice(0, 10);
-    const dateDisplay =
-      dateObj.toLocaleDateString('es-EC') +
-      ' ' +
-      dateObj.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+    const y = dateObj.getFullYear();
+    const mo = pad(dateObj.getMonth() + 1);
+    const da = pad(dateObj.getDate());
+    const hh = pad(dateObj.getHours());
+    const mi = pad(dateObj.getMinutes());
+    const isoDate = `${y}-${mo}-${da}`;
+    const dateDisplay = `${da}/${mo}/${y} ${hh}:${mi}`;
     return { isoDate, dateDisplay, sortMs: ts * 1000 };
   }
 
@@ -148,11 +150,13 @@ export function parseFirebaseTimestamp(timestamp) {
     const d = new Date(normalized);
     if (Number.isNaN(d.getTime())) return { ...INVALID };
     if (!isPlausibleYear(d.getFullYear())) return { ...INVALID };
-    const isoDate = d.toISOString().slice(0, 10);
-    const dateDisplay =
-      d.toLocaleDateString('es-EC') +
-      ' ' +
-      d.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+    const y = d.getFullYear();
+    const mo = pad(d.getMonth() + 1);
+    const da = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    const isoDate = `${y}-${mo}-${da}`;
+    const dateDisplay = `${da}/${mo}/${y} ${hh}:${mi}`;
     return { isoDate, dateDisplay, sortMs: d.getTime() };
   }
 
