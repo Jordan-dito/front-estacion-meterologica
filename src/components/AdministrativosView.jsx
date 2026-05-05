@@ -649,8 +649,19 @@ const DashboardEstudiante = ({
 );
 const DashboardProfesor = ({ mockHistoricalData, stats, ultimoRegistro, datos, ultimoFirebase, onPredicciones, prediccionesML }) => (
 
-
   <div className="space-y-6">
+    {/* Sección de Viabilidad de Cultivos */}
+    {(ultimoFirebase || ultimoRegistro) && (
+      <PredictorCultivos
+        temperatura={ultimoFirebase?.temperatura || ultimoRegistro?.temperatura || 0}
+        radiacion={ultimoFirebase ? (ultimoFirebase.uvIndex / 10) : (ultimoRegistro?.radiacion_solar || 0)}
+        humedadSuelo={ultimoFirebase?.humedad_suelo || ultimoRegistro?.humedad_suelo || 0}
+        humedadRelativa={ultimoFirebase?.humedad || ultimoRegistro?.humedad || 0}
+        pluviometria={ultimoFirebase ? (ultimoFirebase.lluvia / 10) : (ultimoRegistro?.precipitacion || 0)}
+        onPrediccionesChange={onPredicciones}
+      />
+    )}
+
     <div className="bg-white rounded-xl shadow-lg p-6">
 
 
