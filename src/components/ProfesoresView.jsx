@@ -177,31 +177,24 @@ const firebaseComoCSV = registros.map((r) => {
   }, []);
 
 // ========================================================================
-// ⭐ COMBINAR CSV + FIREBASE (un registro Firebase por fecha, sin solapar CSV)
+// ⭐ COMBINAR CSV + FIREBASE
 // ========================================================================
 useEffect(() => {
   const csvConDisplay = datosCSV.map((d) => ({
     ...d,
     dateDisplay: formatDateDisplayForRow(d),
   }));
+  const csvDateSort = new Set(
+    datosCSV.map((d) => d.dateSort).filter((v) => typeof v === 'number' && v > 0)
+  );
   const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
   const minCsvDate = Array.from(fechasCSV).sort()[0] || null;
-
-  // Deduplicar Firebase: un registro por fecha (el más reciente)
-  const firebaseByDate = {};
-  datosFirebaseArray.forEach((d) => {
-    if (!d.date) return;
-    if (!firebaseByDate[d.date] || (d.dateSort || 0) > (firebaseByDate[d.date].dateSort || 0)) {
-      firebaseByDate[d.date] = d;
-    }
-  });
-
-  const firebaseNuevos = Object.values(firebaseByDate).filter((d) => {
-    if (fechasCSV.has(d.date)) return false;
+  const firebaseNuevos = datosFirebaseArray.filter((d) => {
+    if (!d.date) return false;
+    if (d.dateSort && csvDateSort.has(d.dateSort)) return false;
     if (minCsvDate && d.date < minCsvDate) return false;
     return true;
   });
-
   const combinados = [...csvConDisplay, ...firebaseNuevos];
   combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
   setDatos(combinados);

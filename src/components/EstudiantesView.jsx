@@ -205,16 +205,7 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
     const minCSV = fechasCSVOrdenadas[0] || null;
     const maxCSV = fechasCSVOrdenadas[fechasCSVOrdenadas.length - 1] || null;
 
-    // Deduplicar Firebase: un registro por fecha (el más reciente)
-    const firebaseByDate = {};
-    datosFirebaseArray.forEach((d) => {
-      if (!d.date) return;
-      if (!firebaseByDate[d.date] || (d.dateSort || 0) > (firebaseByDate[d.date].dateSort || 0)) {
-        firebaseByDate[d.date] = d;
-      }
-    });
-
-    const firebaseNuevos = Object.values(firebaseByDate).filter(d => {
+    const firebaseNuevos = datosFirebaseArray.filter(d => {
       if (!d.date) return false;
       if (fechasCSV.has(d.date)) return false;
       if (minCSV && d.date < minCSV) return false;
