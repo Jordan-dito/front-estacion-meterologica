@@ -738,9 +738,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                     return (
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-mono text-sm">
-                          {d.fuente === 'csv'
-                            ? (d.dateDisplay ? String(d.dateDisplay).slice(0, 10) : (d.date ? String(d.date).slice(0, 10) : 'Sin fecha'))
-                            : formatDateDisplayForRow(d)}
+                          {formatDateDisplayForRow(d)}
                         </td>
                         <td className="px-4 py-3 text-red-600 font-semibold">{d.temperatura}°C</td>
                         <td className="px-4 py-3 text-blue-600">{d.humedad}%</td>
