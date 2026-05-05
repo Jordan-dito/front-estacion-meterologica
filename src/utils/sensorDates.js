@@ -143,7 +143,9 @@ export function parseFirebaseTimestamp(timestamp) {
   }
 
   if (typeof timestamp === 'string' && /^\d{4}-\d{2}-\d{2}/.test(timestamp.trim())) {
-    const d = new Date(timestamp.trim());
+    // Normalizar "YYYY-MM-DD HH:mm" (espacio) a ISO "YYYY-MM-DDTHH:mm"
+    const normalized = timestamp.trim().replace(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})(?::\d{2})?$/, '$1T$2');
+    const d = new Date(normalized);
     if (Number.isNaN(d.getTime())) return { ...INVALID };
     if (!isPlausibleYear(d.getFullYear())) return { ...INVALID };
     const isoDate = d.toISOString().slice(0, 10);
