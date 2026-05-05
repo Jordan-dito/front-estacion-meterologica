@@ -1203,12 +1203,17 @@ if (keys.length > 0) {
   // ⭐ COMBINAR CSV + FIREBASE
   // ========================================================================
   useEffect(() => {
-    const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
+    const csvDateSort = new Set(
+      datosCSV.map((d) => d.dateSort).filter((v) => typeof v === 'number' && v > 0)
+    );
     const csvMinDate = datosCSV.map((d) => d.date).filter(Boolean).sort()[0] || null;
 
-    const firebaseNuevos = datosFirebaseArray
-      .filter((d) => d.date && !fechasCSV.has(d.date))
-      .filter((d) => !csvMinDate || d.date >= csvMinDate);
+    const firebaseNuevos = datosFirebaseArray.filter((d) => {
+      if (!d.date) return false;
+      if (d.dateSort && csvDateSort.has(d.dateSort)) return false;
+      if (csvMinDate && d.date < csvMinDate) return false;
+      return true;
+    });
 
     const combinados = [...datosCSV, ...firebaseNuevos];
     combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
