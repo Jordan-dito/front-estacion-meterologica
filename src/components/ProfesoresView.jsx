@@ -182,7 +182,14 @@ useEffect(() => {
     dateDisplay: d.date || d.dateDisplay,
   }));
   const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
-  const firebaseNuevos = datosFirebaseArray.filter((d) => d.date && !fechasCSV.has(d.date));
+  const minCsvDate = Array.from(fechasCSV).sort()[0] || null;
+  const firebaseNuevos = datosFirebaseArray.filter((d) => {
+    if (!d.date) return false;
+    if (fechasCSV.has(d.date)) return false;
+    // Evitar que lecturas antiguas del sensor (p.ej. 2016) contaminen el rango/tabla
+    if (minCsvDate && d.date < minCsvDate) return false;
+    return true;
+  });
   const combinados = [...csvConDisplay, ...firebaseNuevos];
   combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
   setDatos(combinados);

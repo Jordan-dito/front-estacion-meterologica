@@ -1203,9 +1203,14 @@ if (keys.length > 0) {
   // ⭐ COMBINAR CSV + FIREBASE
   // ========================================================================
   useEffect(() => {
-    const fechasCSV = new Set(datosCSV.map(d => d.date));
-    const firebaseNuevos = datosFirebaseArray.filter(d => !fechasCSV.has(d.date));
-    
+    const fechasCSV = new Set(datosCSV.map((d) => d.date).filter(Boolean));
+    const csvMinDate = datosCSV.map((d) => d.date).filter(Boolean).sort()[0] || null;
+
+    const firebaseNuevos = datosFirebaseArray
+      .filter((d) => d.date && !fechasCSV.has(d.date))
+      // No permitir que Firebase empuje el mínimo por debajo del histórico CSV
+      .filter((d) => !csvMinDate || d.date >= csvMinDate);
+
     const combinados = [...datosCSV, ...firebaseNuevos];
     combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
     

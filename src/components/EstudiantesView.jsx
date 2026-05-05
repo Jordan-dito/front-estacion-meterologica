@@ -201,7 +201,19 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
   // ========================================================================
   useEffect(() => {
     const fechasCSV = new Set(datosCSV.map(d => d.date));
-    const firebaseNuevos = datosFirebaseArray.filter(d => !fechasCSV.has(d.date));
+    const fechasCSVOrdenadas = datosCSV.map((d) => d.date).filter(Boolean).sort();
+    const minCSV = fechasCSVOrdenadas[0] || null;
+    const maxCSV = fechasCSVOrdenadas[fechasCSVOrdenadas.length - 1] || null;
+
+    const firebaseNuevos = datosFirebaseArray.filter(d => {
+      if (!d.date) return false;
+      if (fechasCSV.has(d.date)) return false;
+      if (minCSV && d.date < minCSV) return false;
+      // Permitir que Firebase extienda hacia adelante; si el sensor manda futuro, el parser lo marcará inválido.
+      if (maxCSV && d.date > maxCSV && d.date > new Date().toISOString().slice(0, 10)) return false;
+      return true;
+    });
+
     const combinados = [...datosCSV, ...firebaseNuevos];
     combinados.sort((a, b) => (a.dateSort || 0) - (b.dateSort || 0));
     setDatos(combinados);
