@@ -1116,9 +1116,9 @@ if (keys.length > 0) {
           const lluvia = r.lluvia < 0 ? 0 : r.lluvia || 0;
           const uvIndex = r.uvIndex || 0;
 
-          const parsed = parseFirebaseTimestamp(r.timestamp);
+          const parsed = parseFirebaseTimestamp(r.timestamp || r.fecha || '');
 
-          const viabilidad = calcularViabilidad(temp, humedad, lluvia/10);
+          const viabilidad = calcularViabilidad(temp, humedad, lluvia);
 
           return {
             date: parsed.isoDate,
