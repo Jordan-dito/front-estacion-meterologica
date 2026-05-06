@@ -1614,26 +1614,26 @@ if (keys.length > 0) {
                 <p className="text-xs font-bold uppercase tracking-widest text-sky-600 mb-1">Panel de Análisis</p>
                 <h2 className="text-3xl font-extrabold text-slate-800">Viabilidad de Cultivos</h2>
                 <p className="text-slate-500 text-sm mt-1">
-                  {filtroInicioAdmin || filtroFinAdmin
-                    ? `Período filtrado: ${filtroInicioAdmin || '—'} → ${filtroFinAdmin || '—'}`
-                    : `${datosFiltradosAdmin.length.toLocaleString()} registros analizados`}
+                  {filtroDashDesde || filtroDashHasta
+                    ? `Período filtrado: ${filtroDashDesde || '—'} → ${filtroDashHasta || '—'}`
+                    : `${datosFiltradosDashboard.length.toLocaleString()} registros analizados`}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
                   <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Desde</label>
-                  <input type="date" value={filtroInicioAdmin} onChange={e => setFiltroInicioAdmin(e.target.value)}
+                  <input type="date" value={filtroDashDesde} onChange={e => setFiltroDashDesde(e.target.value)}
                     max={new Date().toISOString().slice(0, 10)}
                     className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
                 <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
                   <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Hasta</label>
-                  <input type="date" value={filtroFinAdmin} onChange={e => setFiltroFinAdmin(e.target.value)}
+                  <input type="date" value={filtroDashHasta} onChange={e => setFiltroDashHasta(e.target.value)}
                     max={new Date().toISOString().slice(0, 10)}
                     className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
-                {(filtroInicioAdmin || filtroFinAdmin) && (
-                  <button onClick={() => { setFiltroInicioAdmin(''); setFiltroFinAdmin(''); }}
+                {(filtroDashDesde || filtroDashHasta) && (
+                  <button onClick={() => { setFiltroDashDesde(''); setFiltroDashHasta(''); }}
                     className="flex items-center gap-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-sm font-semibold px-4 py-2.5 rounded-xl transition border border-red-500/30">
                     <X size={14} /> Limpiar
                   </button>
