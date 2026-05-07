@@ -1663,10 +1663,10 @@ if (keys.length > 0) {
 
             <DashboardProfesor
               mockHistoricalData={mockHistoricalDataAdmin}
-              stats={statsAdmin}
+              stats={statsDashboard}
               mockCropRecommendations={mockCropRecommendations}
               ultimoRegistro={ultimoRegistro}
-              datos={datosFiltradosAdmin}
+              datos={datosFiltradosDashboard}
               ultimoFirebase={ultimoFirebase}
               onPredicciones={handlePrediccionesActualizadas}
               prediccionesML={prediccionesML}
@@ -1674,6 +1674,15 @@ if (keys.length > 0) {
 
             {datosDashboardAdmin && (
               <>
+                {/* ENCABEZADO GENERAL DE PERÍODO */}
+                {datosDashboardAdmin.periodoDataset && (
+                  <div className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-sky-200" style={{ background: 'rgba(255,255,255,0.7)' }}>
+                    <span className="text-xs font-bold uppercase tracking-widest text-sky-600">Período analizado</span>
+                    <span className="text-sm font-semibold text-slate-700">{datosDashboardAdmin.periodoDataset}</span>
+                    <span className="text-xs text-slate-400">— {datosFiltradosDashboard.length.toLocaleString()} registros</span>
+                  </div>
+                )}
+
                 {/* FILA 1: 3 GRÁFICAS */}
                 <div className="grid md:grid-cols-3 gap-5">
 
@@ -1760,11 +1769,7 @@ if (keys.length > 0) {
                     <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(14,165,233,0.2)' }}>
                       <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#c084fc' }}>Tendencia</span>
                       <h3 className="text-base font-bold text-slate-800 mt-1">Tendencia mensual de viabilidad (%){datosDashboardAdmin.etiquetaAñosEnTendencia || ''}</h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {datosDashboardAdmin.periodoDataset
-                          ? `Periodo: ${datosDashboardAdmin.periodoDataset}`
-                          : 'Evolución porcentual por mes'}
-                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">Evolución porcentual por mes</p>
                     </div>
                     <div className="p-4">
                       <ResponsiveContainer width="100%" height={300}>
