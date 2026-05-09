@@ -1563,6 +1563,7 @@ if (keys.length > 0) {
             type="date"
             value={filtroDashDesde}
             onChange={(e) => setFiltroDashDesde(e.target.value)}
+            min="2023-01-01"
             max={new Date().toISOString().slice(0, 10)}
             className="border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
@@ -1571,6 +1572,7 @@ if (keys.length > 0) {
             type="date"
             value={filtroDashHasta}
             onChange={(e) => setFiltroDashHasta(e.target.value)}
+            min="2023-01-01"
             max={new Date().toISOString().slice(0, 10)}
             className="border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
           />
@@ -1623,13 +1625,13 @@ if (keys.length > 0) {
                 <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
                   <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Desde</label>
                   <input type="date" value={filtroDashDesde} onChange={e => setFiltroDashDesde(e.target.value)}
-                    max={new Date().toISOString().slice(0, 10)}
+                    min="2023-01-01" max={new Date().toISOString().slice(0, 10)}
                     className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
                 <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
                   <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Hasta</label>
                   <input type="date" value={filtroDashHasta} onChange={e => setFiltroDashHasta(e.target.value)}
-                    max={new Date().toISOString().slice(0, 10)}
+                    min="2023-01-01" max={new Date().toISOString().slice(0, 10)}
                     className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
                 {(filtroDashDesde || filtroDashHasta) && (

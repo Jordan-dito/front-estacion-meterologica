@@ -653,6 +653,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 <label className="text-gray-700 font-medium text-sm">Inicio:</label>
                 <input
                   type="date"
+                  min="2023-01-01"
                   max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroInicio}
@@ -661,6 +662,7 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 <label className="text-gray-700 font-medium text-sm">Fin:</label>
                 <input
                   type="date"
+                  min="2023-01-01"
                   max={today}
                   className="border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
                   value={filtroFin}
@@ -784,12 +786,12 @@ const stats = useMemo(() => calcularEstadisticas(datos), [datos]);
                 <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
                   <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Desde</label>
                   <input type="date" value={filtroInicio} onChange={e => setFiltroInicio(e.target.value)}
-                    max={today} className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
+                    min="2023-01-01" max={today} className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
                 <div className="flex items-center gap-2 bg-white/70 rounded-xl px-4 py-2.5 border border-sky-200">
                   <label className="text-sky-600 text-xs font-semibold uppercase tracking-wide">Hasta</label>
                   <input type="date" value={filtroFin} onChange={e => setFiltroFin(e.target.value)}
-                    max={today} className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
+                    min="2023-01-01" max={today} className="bg-transparent text-slate-700 text-sm focus:outline-none" style={{ colorScheme: 'light' }} />
                 </div>
                 {(filtroInicio || filtroFin) && (
                   <button onClick={() => { setFiltroInicio(''); setFiltroFin(''); }}
