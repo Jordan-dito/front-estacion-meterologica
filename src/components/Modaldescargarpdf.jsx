@@ -228,10 +228,12 @@ const normalizarFecha = (fechaStr) => {
     .filter(f => f !== null)
     .sort();
   
-  const fechaMinima = fechasNormalizadas[0] || '';
+  const fechaMinima = '2023-01-01';
   const fechaMaxima = fechasNormalizadas[fechasNormalizadas.length - 1] || '';
   const today = new Date().toISOString().split('T')[0];
   const maxFecha = fechaMaxima && today < fechaMaxima ? today : (fechaMaxima || today);
+  const añoInicio = '2023';
+  const añoFin = fechaMaxima ? fechaMaxima.slice(0, 4) : today.slice(0, 4);
 
   return (
     <>
@@ -260,9 +262,9 @@ const normalizarFecha = (fechaStr) => {
             <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
               <h3 className="font-semibold text-gray-800 mb-3">📅 Descargar por Rango</h3>
               
-              {fechaMinima && fechaMaxima && (
+              {fechaMaxima && (
                 <p className="text-xs text-gray-600 mb-3 bg-white p-2 rounded">
-                  📆 Disponible: <strong>{fechaMinima}</strong> a <strong>{fechaMaxima}</strong>
+                  📆 Disponible: <strong>{añoInicio}</strong> a <strong>{añoFin}</strong>
                 </p>
               )}
               
