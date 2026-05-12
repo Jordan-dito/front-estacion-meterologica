@@ -1615,7 +1615,7 @@ if (keys.length > 0) {
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-sky-600 mb-1">Panel de Análisis</p>
                 <h2 className="text-3xl font-extrabold text-slate-800">Viabilidad de Cultivos</h2>
-                <p className="text-slate-500 text-sm mt-1">
+                <p className="text-slate-600 text-base font-medium mt-1">
                   {datosDashboardAdmin?.periodoDataset
                     ? `${datosDashboardAdmin.periodoDataset} — ${datosFiltradosDashboard.length.toLocaleString()} registros`
                     : `${datosFiltradosDashboard.length.toLocaleString()} registros analizados`}
