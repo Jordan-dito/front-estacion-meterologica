@@ -339,15 +339,6 @@ const EstudiantesView = ({ user, apiBaseUrl, onLogout }) => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          <span className={`flex items-center gap-1 ${ultimoFirebase ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className={`w-2 h-2 rounded-full ${ultimoFirebase ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
-            {ultimoFirebase ? '🔴 EN VIVO' : 'Sin conexión'}
-          </span>
-          <span className="text-gray-500">📁 {datosCSV.length} CSV</span>
-          <span className="text-gray-500">🔥 {datosFirebaseArray.length} Firebase</span>
-          <span className="text-purple-600 font-bold">📊 {datos.length} TOTAL</span>
-        </div>
       </div>
 
       {/* TIEMPO REAL FIREBASE */}
